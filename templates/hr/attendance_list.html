@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Attendance{% endblock %}{% block page_title %}Attendance{% endblock %}
+{% block topbar_actions %}<a href="{% url 'hr:attendance_create' %}" class="btn btn-primary btn-sm">+ Record</a>{% endblock %}
+{% block content %}
+<div class="toolbar">
+    <input type="date" name="date" value="{{ att_date }}" class="filter-select"
+           hx-get="{% url 'hr:attendance_list' %}" hx-trigger="change" hx-target="#att-table">
+</div>
+<div id="att-table">
+{% if records %}
+<div class="table-container"><table>
+    <thead><tr><th>Employee</th><th>Date</th><th>Check In</th><th>Check Out</th><th>Status</th></tr></thead>
+    <tbody>{% for r in records %}<tr>
+        <td>{{ r.employee.get_full_name }}</td><td>{{ r.date|date:"M d, Y" }}</td>
+        <td>{{ r.check_in|time:"g:i A"|default:"-" }}</td><td>{{ r.check_out|time:"g:i A"|default:"-" }}</td>
+        <td>{% if r.status == 'PRESENT' %}<span class="badge badge-success">Present</span>{% elif r.status == 'ABSENT' %}<span class="badge badge-danger">Absent</span>{% elif r.status == 'LEAVE' %}<span class="badge badge-info">On Leave</span>{% else %}<span class="badge badge-warning">Late</span>{% endif %}</td>
+    </tr>{% endfor %}</tbody>
+</table></div>
+{% else %}<div class="empty-state"><h3>No attendance records</h3></div>{% endif %}
+</div>
+{% endblock %}

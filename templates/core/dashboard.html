@@ -1,0 +1,344 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block breadcrumb_current %}Dashboard{% endblock %}
+
+{% block content %}
+<section class="dashboard-hero fade-in">
+    <div>
+        <span class="eyebrow">Clinical Operations</span>
+        <h1>Hospital command center</h1>
+        <p>Monitor patients, diagnostics, prescriptions, beds, and billing from one high-signal workspace.</p>
+    </div>
+    <div class="hero-pulse" aria-hidden="true">
+        <span></span>
+        <i data-lucide="activity"></i>
+    </div>
+</section>
+
+<div class="stats-grid stagger">
+    {% if not user.is_doctor %}
+        <div class="stat-card cyan">
+            <div class="stat-icon">
+                <i data-lucide="stethoscope"></i>
+            </div>
+            <div class="stat-body">
+                <div class="stat-value tabular">{{ total_doctors }}</div>
+                <div class="stat-label">Total Doctors</div>
+            </div>
+        </div>
+        <div class="stat-card green">
+            <div class="stat-icon">
+                <i data-lucide="users"></i>
+            </div>
+            <div class="stat-body">
+                <div class="stat-value tabular">{{ total_patients }}</div>
+                <div class="stat-label">Total Patients</div>
+            </div>
+        </div>
+        <div class="stat-card purple">
+            <div class="stat-icon">
+                <i data-lucide="file-text"></i>
+            </div>
+            <div class="stat-body">
+                <div class="stat-value tabular">{{ total_reports }}</div>
+                <div class="stat-label">Total Reports</div>
+            </div>
+        </div>
+        <div class="stat-card amber">
+            <div class="stat-icon">
+                <i data-lucide="pill"></i>
+            </div>
+            <div class="stat-body">
+                <div class="stat-value tabular">{{ total_prescriptions }}</div>
+                <div class="stat-label">Prescriptions</div>
+            </div>
+        </div>
+        {% if pending_reports > 0 %}
+        <div class="stat-card red">
+            <div class="stat-icon">
+                <i data-lucide="clock"></i>
+            </div>
+            <div class="stat-body">
+                <div class="stat-value tabular">{{ pending_reports }}</div>
+                <div class="stat-label">Pending Reports</div>
+            </div>
+        </div>
+        {% endif %}
+    {% else %}
+        <div class="stat-card blue">
+            <div class="stat-icon">
+                <i data-lucide="users"></i>
+            </div>
+            <div class="stat-body">
+                <div class="stat-value tabular">{{ my_patients|default:"0" }}</div>
+                <div class="stat-label">My Patients</div>
+            </div>
+        </div>
+        <div class="stat-card purple">
+            <div class="stat-icon">
+                <i data-lucide="file-text"></i>
+            </div>
+            <div class="stat-body">
+                <div class="stat-value tabular">{{ my_reports|default:"0" }}</div>
+                <div class="stat-label">My Reports</div>
+            </div>
+        </div>
+        <div class="stat-card amber">
+            <div class="stat-icon">
+                <i data-lucide="pill"></i>
+            </div>
+            <div class="stat-body">
+                <div class="stat-value tabular">{{ my_prescriptions|default:"0" }}</div>
+                <div class="stat-label">My Prescriptions</div>
+            </div>
+        </div>
+        {% if pending_reports > 0 %}
+        <div class="stat-card red">
+            <div class="stat-icon">
+                <i data-lucide="clock"></i>
+            </div>
+            <div class="stat-body">
+                <div class="stat-value tabular">{{ pending_reports }}</div>
+                <div class="stat-label">Pending Reports</div>
+            </div>
+        </div>
+        {% endif %}
+    {% endif %}
+</div>
+
+{% if not user.is_doctor %}
+<!-- Charts -->
+<div class="detail-grid">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Patient Registrations</h3>
+            <span class="card-subtitle">Last 6 months</span>
+        </div>
+        <div style="padding:12px;"><canvas id="patientTrendChart"></canvas></div>
+    </div>
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Reports by Category</h3>
+        </div>
+        <div style="padding:12px;"><canvas id="reportCategoryChart"></canvas></div>
+    </div>
+</div>
+<div class="card" style="margin-bottom:24px;">
+    <div class="card-header">
+        <h3 class="card-title">Prescriptions by Status</h3>
+    </div>
+    <div style="padding:12px;max-width:400px;"><canvas id="rxStatusChart"></canvas></div>
+</div>
+{% endif %}
+
+<div class="detail-grid stagger">
+    <!-- Recent Patients -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Recent Patients</h3>
+            <a href="{% url 'patients:patient_list' %}" class="btn btn-secondary btn-sm">
+                <i data-lucide="arrow-right" style="width:13px;height:13px;"></i>
+                View All
+            </a>
+        </div>
+        {% if recent_patients %}
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Phone</th>
+                        <th>Gender</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for patient in recent_patients %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'patients:patient_detail' patient.pk %}" style="font-weight:600;color:var(--text-1);">{{ patient.full_name }}</a>
+                        </td>
+                        <td class="tabular">{{ patient.phone }}</td>
+                        <td>{{ patient.get_gender_display }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon"><i data-lucide="users"></i></div>
+            <h3>No patients yet</h3>
+            <p>Registered patients will appear here.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Recent Reports -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Recent Reports</h3>
+            <a href="{% url 'reports:report_list' %}" class="btn btn-secondary btn-sm">
+                <i data-lucide="arrow-right" style="width:13px;height:13px;"></i>
+                View All
+            </a>
+        </div>
+        {% if recent_reports %}
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Test</th>
+                        <th>Patient</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for report in recent_reports %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'reports:report_detail' report.pk %}" style="font-weight:600;color:var(--text-1);">{{ report.test_name }}</a>
+                        </td>
+                        <td>{{ report.patient.full_name }}</td>
+                        <td>
+                            {% if report.status == 'COMPLETED' %}
+                                <span class="badge badge-success"><i data-lucide="check" style="width:11px;height:11px;"></i> Completed</span>
+                            {% elif report.status == 'IN_PROGRESS' %}
+                                <span class="badge badge-warning"><i data-lucide="loader" style="width:11px;height:11px;"></i> In Progress</span>
+                            {% else %}
+                                <span class="badge badge-neutral"><i data-lucide="clock" style="width:11px;height:11px;"></i> Pending</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon"><i data-lucide="file-text"></i></div>
+            <h3>No reports yet</h3>
+            <p>Diagnostic and lab reports will appear here.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if not user.is_doctor %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Resolve CSS variable colors for charts
+    function getCSSVar(name) {
+        return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    }
+
+    const chartColors = {
+        accent: getCSSVar('--accent') || '#14b8a6',
+        accentLight: getCSSVar('--accent-light') || '#2dd4bf',
+        accent2: getCSSVar('--accent-2') || '#8b5cf6',
+        success: getCSSVar('--success') || '#34d399',
+        warning: getCSSVar('--warning') || '#fbbf24',
+        danger: getCSSVar('--danger') || '#f87171',
+        info: getCSSVar('--info') || '#60a5fa',
+        textMuted: getCSSVar('--text-3') || '#6b7a99',
+        text2: getCSSVar('--text-2') || '#a3b0c8',
+    };
+
+    // Patient Trend Chart
+    {% if patient_trend_json %}
+    const patientData = {{ patient_trend_json|safe }};
+    const patientLabels = patientData.map(d => {
+        const date = new Date(d.month);
+        return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    }).reverse();
+    const patientCounts = patientData.map(d => d.count).reverse();
+
+    new Chart(document.getElementById('patientTrendChart'), {
+        type: 'line',
+        data: {
+            labels: patientLabels,
+            datasets: [{
+                label: 'Patients Registered',
+                data: patientCounts,
+                borderColor: chartColors.accent,
+                backgroundColor: chartColors.accent + '18',
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: chartColors.accent,
+                pointBorderColor: 'transparent',
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                borderWidth: 2,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, ticks: { stepSize: 1, color: chartColors.textMuted }, grid: { color: getCSSVar('--border') || 'rgba(148,170,204,0.08)' } },
+                x: { ticks: { color: chartColors.textMuted }, grid: { display: false } }
+            }
+        }
+    });
+    {% endif %}
+
+    // Reports by Category
+    {% if reports_by_category_json %}
+    const reportData = {{ reports_by_category_json|safe }};
+    const reportLabels = reportData.map(d => d.test_category);
+    const reportCounts = reportData.map(d => d.count);
+    const colors = [chartColors.accent, chartColors.success, chartColors.accent2, chartColors.warning, chartColors.danger, chartColors.info];
+
+    new Chart(document.getElementById('reportCategoryChart'), {
+        type: 'doughnut',
+        data: {
+            labels: reportLabels,
+            datasets: [{
+                data: reportCounts,
+                backgroundColor: colors.slice(0, reportLabels.length),
+                borderWidth: 0,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom', labels: { color: chartColors.text2, padding: 16, usePointStyle: true, pointStyleWidth: 10 } }
+            },
+            cutout: '65%',
+        }
+    });
+    {% endif %}
+
+    // Rx by Status
+    {% if rx_by_status_json %}
+    const rxData = {{ rx_by_status_json|safe }};
+    const rxLabels = rxData.map(d => d.status);
+    const rxCounts = rxData.map(d => d.count);
+
+    new Chart(document.getElementById('rxStatusChart'), {
+        type: 'doughnut',
+        data: {
+            labels: rxLabels,
+            datasets: [{
+                data: rxCounts,
+                backgroundColor: [chartColors.success, chartColors.warning, chartColors.danger],
+                borderWidth: 0,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom', labels: { color: chartColors.text2, padding: 16, usePointStyle: true, pointStyleWidth: 10 } }
+            },
+            cutout: '65%',
+        }
+    });
+    {% endif %}
+});
+</script>
+{% endif %}
+{% endblock %}

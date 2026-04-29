@@ -1,0 +1,98 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login — HMS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Sora:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <div class="login-page">
+        <div class="login-card" style="animation: fadeInUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;">
+            <!-- Logo -->
+            <div class="login-logo">
+                <div class="sidebar-logo">
+                    <i data-lucide="activity" style="width:22px;height:22px;stroke-width:2.2;"></i>
+                </div>
+                <h1>MediCore</h1>
+            </div>
+            <p class="login-subtitle">Clinical command center for modern hospital operations</p>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {% if message.tags == 'success' %}<i data-lucide="check-circle"></i>
+                        {% elif message.tags == 'error' %}<i data-lucide="alert-circle"></i>
+                        {% elif message.tags == 'warning' %}<i data-lucide="alert-triangle"></i>
+                        {% else %}<i data-lucide="info"></i>{% endif %}
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {% if form.errors %}
+                <div class="alert alert-error">
+                    <i data-lucide="alert-circle"></i>
+                    Invalid username or password. Please try again.
+                </div>
+            {% endif %}
+
+            <form method="post" class="login-form">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label class="form-label" for="id_username">
+                        <i data-lucide="user" style="width:13px;height:13px;vertical-align:-1px;margin-right:4px;opacity:0.6;"></i>
+                        Username
+                    </label>
+                    <input type="text" name="username" id="id_username" class="form-input" placeholder="Enter your username" autocomplete="username" required autofocus>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="id_password">
+                        <i data-lucide="lock" style="width:13px;height:13px;vertical-align:-1px;margin-right:4px;opacity:0.6;"></i>
+                        Password
+                    </label>
+                    <input type="password" name="password" id="id_password" class="form-input" placeholder="Enter your password" autocomplete="current-password" required>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i data-lucide="arrow-right-to-line" style="width:16px;height:16px;"></i>
+                    Sign In
+                </button>
+            </form>
+
+            <!-- Demo credentials (collapsible) -->
+            <details class="demo-credentials">
+                <summary>Demo Accounts</summary>
+                <pre>Password: password123
+
+Admin:        admin
+Doctor:       doctor_john
+Receptionist: receptionist1
+Nurse:        nurse1
+Pharmacist:   pharmacist1
+Laboratorian: laboratorian1
+Accountant:   accountant1
+HR:           hr1</pre>
+            </details>
+        </div>
+    </div>
+
+    <script>
+        if (window.lucide) {
+            if (typeof window.lucide.createIcons === 'function') {
+                window.lucide.createIcons();
+            } else if (typeof window.lucide.create === 'function') {
+                window.lucide.create();
+            }
+        }
+        (function() {
+            const saved = localStorage.getItem('hms-theme');
+            if (saved) document.documentElement.setAttribute('data-theme', saved);
+        })();
+    </script>
+</body>
+</html>

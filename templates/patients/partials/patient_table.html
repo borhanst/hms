@@ -1,0 +1,60 @@
+{% if patients %}
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Gender</th>
+                <th>Phone</th>
+                <th>Blood Group</th>
+                <th>Doctor</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for patient in patients %}
+            <tr>
+                <td><a href="{% url 'patients:patient_detail' patient.pk %}">{{ patient.full_name }}</a></td>
+                <td>{{ patient.get_gender_display }}</td>
+                <td>{{ patient.phone }}</td>
+                <td>
+                    {% if patient.blood_group %}
+                        <span class="badge badge-danger">{{ patient.blood_group }}</span>
+                    {% else %}-{% endif %}
+                </td>
+                <td>
+                    {% if patient.assigned_doctor %}
+                        Dr. {{ patient.assigned_doctor.user.get_full_name }}
+                    {% else %}-{% endif %}
+                </td>
+                <td style="display:flex;gap:6px;">
+                    <a href="{% url 'patients:patient_detail' patient.pk %}" class="btn btn-secondary btn-sm">View</a>
+                    {% if not user.is_doctor %}
+                    <a href="{% url 'patients:patient_edit' patient.pk %}" class="btn btn-secondary btn-sm">Edit</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% if page_obj.has_other_pages %}
+<div class="pagination">
+    {% if page_obj.has_previous %}
+        <a href="?page=1&search={{ search }}&blood_group={{ blood_group }}" class="pagination-link">&laquo; First</a>
+        <a href="?page={{ page_obj.previous_page_number }}&search={{ search }}&blood_group={{ blood_group }}" class="pagination-link">Previous</a>
+    {% endif %}
+    <span class="pagination-info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&search={{ search }}&blood_group={{ blood_group }}" class="pagination-link">Next</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}&search={{ search }}&blood_group={{ blood_group }}" class="pagination-link">Last &raquo;</a>
+    {% endif %}
+</div>
+{% endif %}
+{% else %}
+<div class="empty-state">
+    <div class="empty-state-icon"><i data-lucide="users"></i></div>
+    <h3>No patients found</h3>
+    <p>Register a patient to get started.</p>
+</div>
+{% endif %}

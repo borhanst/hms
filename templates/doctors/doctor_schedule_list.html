@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Schedule - Dr. {{ doctor.user.get_full_name }}{% endblock %}
+{% block page_title %}Doctor Schedule{% endblock %}
+
+{% block topbar_actions %}
+{% if user.is_admin or user.is_superuser %}
+<a href="{% url 'doctors:doctor_schedule_create' doctor.pk %}" class="btn btn-primary btn-sm">+ Add Schedule</a>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="detail-header">
+    <div>
+        <h1 class="detail-title">Dr. {{ doctor.user.get_full_name }}</h1>
+        <div class="detail-meta">
+            <span class="detail-meta-item">{{ doctor.specialization }}</span>
+            <span class="detail-meta-item">Weekly Schedule</span>
+        </div>
+    </div>
+</div>
+
+{% if schedules %}
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>Day</th>
+                <th>Start Time</th>
+                <th>End Time</th>
+                <th>Break</th>
+                <th>Max Patients</th>
+                <th>Status</th>
+                {% if user.is_admin or user.is_superuser %}
+                <th>Actions</th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for schedule in schedules %}
+            <tr>
+                <td><strong>{{ schedule.get_day_of_week_display }}</strong></td>
+                <td>{{ schedule.start_time|time:"g:i A" }}</td>
+                <td>{{ schedule.end_time|time:"g:i A" }}</td>
+                <td>
+                    {% if schedule.has_break %}
+                        {{ schedule.break_start|time:"g:i A" }} - {{ schedule.break_end|time:"g:i A" }}
+                    {% else %}-{% endif %}
+                </td>
+                <td>{{ schedule.max_patients|default:"Unlimited" }}</td>
+                <td>
+                    {% if schedule.is_active %}
+                        <span class="badge badge-success">Active</span>
+                    {% else %}
+                        <span class="badge badge-neutral">Inactive</span>
+                    {% endif %}
+                </td>
+                {% if user.is_admin or user.is_superuser %}
+                <td style="display:flex;gap:6px;">
+                    <a href="{% url 'doctors:doctor_schedule_edit' schedule.pk %}" class="btn btn-secondary btn-sm">Edit</a>
+                    <a href="{% url 'doctors:doctor_schedule_delete' schedule.pk %}" class="btn btn-danger btn-sm">Delete</a>
+                </td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="empty-state">
+    <div class="empty-state-icon"><i data-lucide="calendar"></i></div>
+    <h3>No schedule configured</h3>
+    <p>Add a schedule to define when this doctor is available.</p>
+</div>
+{% endif %}
+
+<div style="margin-top:24px;">
+    <a href="{% url 'doctors:doctor_detail' doctor.pk %}" class="btn btn-secondary">← Back to Doctor</a>
+</div>
+{% endblock %}

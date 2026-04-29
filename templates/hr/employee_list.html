@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Employees{% endblock %}{% block page_title %}Employees{% endblock %}
+{% block topbar_actions %}<a href="{% url 'hr:employee_create' %}" class="btn btn-primary btn-sm"><i data-lucide="plus"></i> Add Employee</a>{% endblock %}
+
+{% block content %}
+<div class="toolbar">
+    <div class="search-box">
+        <i data-lucide="search" class="search-icon"></i>
+        <input type="text" 
+               name="search" 
+               placeholder="Search by name or department..."
+               value="{{ search|default:'' }}"
+               hx-get="{% url 'hr:employee_list' %}"
+               hx-trigger="keyup changed delay:300ms"
+               hx-target="#employee-table"
+               hx-include="[name='department']">
+    </div>
+    <select name="department" 
+            class="filter-select"
+            hx-get="{% url 'hr:employee_list' %}"
+            hx-trigger="change"
+            hx-target="#employee-table"
+            hx-include="[name='search']">
+        <option value="">All Departments</option>
+        {% for dept in departments %}
+        <option value="{{ dept }}" {% if current_department == dept %}selected{% endif %}>{{ dept }}</option>
+        {% endfor %}
+    </select>
+</div>
+
+<div id="employee-table">
+    {% if employees %}
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Department</th>
+                    <th>Designation</th>
+                    <th>Join Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for e in employees %}
+                <tr>
+                    <td>{{ e.employee_id }}</td>
+                    <td><a href="{% url 'hr:employee_detail' e.pk %}" style="font-weight:600;color:var(--text-1);">{{ e.user.get_full_name|default:e.user.username }}</a></td>
+                    <td>{{ e.department|default:"—" }}</td>
+                    <td>{{ e.designation|default:"—" }}</td>
+                    <td>{{ e.join_date|date:"M d, Y"|default:"—" }}</td>
+                    <td style="display:flex;gap:6px;">
+                        <a href="{% url 'hr:employee_detail' e.pk %}" class="btn btn-secondary btn-sm">View</a>
+                        <a href="{% url 'hr:employee_edit' e.pk %}" class="btn btn-secondary btn-sm">Edit</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% if page_obj.has_other_pages %}
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+        <a href="?page=1&search={{ search|default:'' }}&department={{ current_department|default:'' }}" class="pagination-link">&laquo; First</a>
+        <a href="?page={{ page_obj.previous_page_number }}&search={{ search|default:'' }}&department={{ current_department|default:'' }}" class="pagination-link">Previous</a>
+        {% endif %}
+        <span class="pagination-info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&search={{ search|default:'' }}&department={{ current_department|default:'' }}" class="pagination-link">Next</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}&search={{ search|default:'' }}&department={{ current_department|default:'' }}" class="pagination-link">Last &raquo;</a>
+        {% endif %}
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state-icon"><i data-lucide="users"></i></div>
+        <h3>No employee profiles</h3>
+        <p>Add an employee to get started.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

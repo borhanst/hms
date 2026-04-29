@@ -1,0 +1,99 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prescription — Print</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background: #f5f5f5; padding: 20px; }
+        .no-print { text-align: center; margin-bottom: 20px; }
+        .no-print button { padding: 10px 24px; background: #06b6d4; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; margin-right: 8px; }
+        .no-print button:last-child { background: #64748b; }
+    </style>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+    <div class="no-print">
+        <button onclick="window.print()"><i data-lucide="printer"></i> Print Prescription</button>
+        <button onclick="history.back()">← Go Back</button>
+    </div>
+
+    <div class="print-prescription">
+        <div class="print-header">
+            <h1>HMS — Hospital Management System</h1>
+            <p>Hospital & Diagnostic Center</p>
+        </div>
+
+        <div class="print-info">
+            <div>
+                <strong>Patient:</strong> {{ prescription.patient.full_name }}<br>
+                <strong>Age:</strong> {{ prescription.patient.age|default:"-" }} &nbsp;
+                <strong>Gender:</strong> {{ prescription.patient.get_gender_display }}<br>
+                <strong>Phone:</strong> {{ prescription.patient.phone }}
+            </div>
+            <div style="text-align:right;">
+                <strong>Date:</strong> {{ prescription.created_at|date:"M d, Y" }}<br>
+                <strong>Doctor:</strong> {% if prescription.doctor %}Dr. {{ prescription.doctor.user.get_full_name }}{% else %}-{% endif %}<br>
+                {% if prescription.doctor %}<strong>Dept:</strong> {{ prescription.doctor.get_department_display }}{% endif %}
+            </div>
+        </div>
+
+        <div class="print-rx">℞</div>
+
+        <p><strong>Diagnosis:</strong> {{ prescription.diagnosis }}</p>
+        <br>
+
+        {% if prescription.items.exists %}
+        <table class="print-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Medicine</th>
+                    <th>Dosage</th>
+                    <th>Qty</th>
+                    <th>Frequency</th>
+                    <th>Duration</th>
+                    <th>Unit Price</th>
+                    <th>Total</th>
+                    <th>Instructions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in prescription.items.all %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ item.display_medicine_name }}</td>
+                    <td>{{ item.dosage }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>{{ item.get_frequency_display }}</td>
+                    <td>{{ item.duration }}</td>
+                    <td>৳{{ item.display_unit_price }}</td>
+                    <td>৳{{ item.total }}</td>
+                    <td>{{ item.instructions|default:"-" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+
+        {% if prescription.notes %}
+        <p><strong>Notes:</strong> {{ prescription.notes }}</p>
+        {% endif %}
+
+        {% if prescription.follow_up_date %}
+        <p><strong>Follow-up:</strong> {{ prescription.follow_up_date|date:"M d, Y" }}</p>
+        {% endif %}
+
+        <div class="print-footer">
+            <div></div>
+            <div class="print-signature">
+                <div class="print-signature-line"></div>
+                <p>{% if prescription.doctor %}Dr. {{ prescription.doctor.user.get_full_name }}{% else %}Doctor's Signature{% endif %}</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

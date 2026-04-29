@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Nursing Notes{% endblock %}{% block page_title %}Nursing Notes{% endblock %}
+{% block topbar_actions %}<a href="{% url 'nursing:note_create' %}" class="btn btn-primary btn-sm">+ New Note</a>{% endblock %}
+{% block content %}
+{% if notes %}
+<div class="table-container"><table>
+    <thead><tr><th>Title</th><th>Patient</th><th>Nurse</th><th>Priority</th><th>Note</th><th>Date</th><th>Actions</th></tr></thead>
+    <tbody>{% for n in notes %}<tr>
+        <td>{{ n.title }}</td><td>{{ n.patient.full_name }}</td><td>{{ n.nurse.get_full_name|default:"-" }}</td>
+        <td>{% if n.priority == 'URGENT' %}<span class="badge badge-danger">Urgent</span>{% elif n.priority == 'HIGH' %}<span class="badge badge-warning">High</span>{% else %}<span class="badge badge-info">{{ n.get_priority_display }}</span>{% endif %}</td>
+        <td>{{ n.note|truncatewords:8 }}</td><td>{{ n.created_at|date:"M d, H:i" }}</td>
+        <td style="display:flex;gap:6px;"><a href="{% url 'nursing:note_edit' n.pk %}" class="btn btn-secondary btn-sm">Edit</a><a href="{% url 'nursing:note_delete' n.pk %}" class="btn btn-danger btn-sm">Delete</a></td>
+    </tr>{% endfor %}</tbody>
+</table></div>
+{% if page_obj.has_other_pages %}<div class="pagination">
+    {% if page_obj.has_previous %}<a href="?page=1" class="pagination-link">&laquo; First</a><a href="?page={{ page_obj.previous_page_number }}" class="pagination-link">Previous</a>{% endif %}
+    <span class="pagination-info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}" class="pagination-link">Next</a><a href="?page={{ page_obj.paginator.num_pages }}" class="pagination-link">Last &raquo;</a>{% endif %}
+</div>{% endif %}
+{% else %}<div class="empty-state"><h3>No nursing notes</h3></div>{% endif %}
+{% endblock %}

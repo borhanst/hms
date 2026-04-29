@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Pharmacy Sales{% endblock %}
+{% block page_title %}Pharmacy Sales{% endblock %}
+{% block topbar_actions %}<a href="{% url 'pharmacy:sale_create' %}" class="btn btn-primary btn-sm">+ New Sale</a>{% endblock %}
+{% block content %}
+<div class="toolbar">
+    <form method="get">
+        <select name="status" class="filter-select" onchange="this.form.submit()">
+            <option value="">All Statuses</option>
+            {% for value,label in status_choices %}
+            <option value="{{ value }}" {% if status == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </form>
+</div>
+<div class="card">
+    <div class="table-container">
+        <table>
+            <thead><tr><th>Patient</th><th>Date</th><th>Status</th><th>Total</th><th>Invoice</th><th></th></tr></thead>
+            <tbody>
+                {% for sale in sales %}
+                <tr>
+                    <td>{{ sale.patient.full_name }}</td>
+                    <td>{{ sale.sale_date|date:"M d, Y H:i" }}</td>
+                    <td><span class="badge">{{ sale.get_status_display }}</span></td>
+                    <td>৳{{ sale.total }}</td>
+                    <td>{% if sale.invoice %}<a href="{% url 'billing:invoice_detail' sale.invoice.pk %}">{{ sale.invoice.invoice_number }}</a>{% else %}-{% endif %}</td>
+                    <td><a href="{% url 'pharmacy:sale_detail' sale.pk %}" class="btn btn-secondary btn-sm">Open</a></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6"><div class="empty-state"><p>No sales yet.</p></div></td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

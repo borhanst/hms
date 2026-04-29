@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Delete Report{% endblock %}
+{% block page_title %}Confirm Delete{% endblock %}
+
+{% block content %}
+<div class="card confirm-card">
+    <h2><i data-lucide="alert-triangle" style="width:20px;height:20px;color:var(--warning);"></i> Delete Report</h2>
+    <p>Are you sure you want to delete the report <strong>{{ report.test_name }}</strong> for <strong>{{ report.patient.full_name }}</strong>? This action cannot be undone.</p>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-actions">
+            <button type="submit" class="btn btn-danger">Yes, Delete</button>
+            <a href="{% url 'reports:report_detail' report.pk %}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

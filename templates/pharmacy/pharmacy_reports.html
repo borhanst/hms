@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Pharmacy Reports{% endblock %}
+{% block page_title %}Pharmacy Reports{% endblock %}
+{% block content %}
+<div class="stats-grid">
+    <div class="stat-card green"><div class="stat-icon"><i data-lucide="shopping-cart"></i></div><div class="stat-value">৳{{ sales_total|floatformat:0 }}</div><div class="stat-label">Sales Revenue</div></div>
+    <div class="stat-card amber"><div class="stat-icon"><i data-lucide="truck"></i></div><div class="stat-value">৳{{ purchase_total|floatformat:0 }}</div><div class="stat-label">Purchase Cost</div></div>
+</div>
+<div class="grid-2" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px;">
+    <div class="card">
+        <div class="card-header"><h3 class="card-title">Top Sold Medicines</h3></div>
+        <div class="table-container"><table><thead><tr><th>Medicine</th><th>Qty</th><th>Revenue</th></tr></thead><tbody>
+            {% for row in top_sold %}<tr><td>{{ row.medicine__name }}</td><td>{{ row.quantity }}</td><td>৳{{ row.revenue|floatformat:2 }}</td></tr>{% empty %}<tr><td colspan="3">No sales data.</td></tr>{% endfor %}
+        </tbody></table></div>
+    </div>
+    <div class="card">
+        <div class="card-header"><h3 class="card-title">Low Stock</h3></div>
+        <div class="table-container"><table><thead><tr><th>Medicine</th><th>Stock</th><th>Reorder</th></tr></thead><tbody>
+            {% for med in low_stock %}<tr><td>{{ med.name }}</td><td>{{ med.stock }}</td><td>{{ med.reorder_level }}</td></tr>{% empty %}<tr><td colspan="3">No low stock medicines.</td></tr>{% endfor %}
+        </tbody></table></div>
+    </div>
+    <div class="card">
+        <div class="card-header"><h3 class="card-title">Expired Medicines</h3></div>
+        <div class="table-container"><table><thead><tr><th>Medicine</th><th>Stock</th><th>Expired</th></tr></thead><tbody>
+            {% for med in expired_medicines %}<tr><td>{{ med.name }}</td><td>{{ med.stock }}</td><td>{{ med.expiry_date|date:"M d, Y" }}</td></tr>{% empty %}<tr><td colspan="3">No expired medicines.</td></tr>{% endfor %}
+        </tbody></table></div>
+    </div>
+    <div class="card">
+        <div class="card-header"><h3 class="card-title">Near Expiry</h3></div>
+        <div class="table-container"><table><thead><tr><th>Medicine</th><th>Stock</th><th>Days</th></tr></thead><tbody>
+            {% for med in near_expiry_medicines %}<tr><td>{{ med.name }}</td><td>{{ med.stock }}</td><td>{{ med.days_until_expiry }}</td></tr>{% empty %}<tr><td colspan="3">No near-expiry medicines.</td></tr>{% endfor %}
+        </tbody></table></div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block content %}
+<form method="post" class="form-grid">
+    {% csrf_token %}
+    <h3>Sale Details</h3>
+    {% for field in form %}
+    <div class="form-field">
+        <label class="form-label">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}<span class="form-error">{{ field.errors|striptags }}</span>{% endif %}
+    </div>
+    {% endfor %}
+    <h3>Medicines</h3>
+    <div id="formset-container">
+        {{ formset.management_form }}
+        {% for item_form in formset %}
+        <div class="formset-row pharmacy-formset-row">
+            {% for hidden in item_form.hidden_fields %}{{ hidden }}{% endfor %}
+            {% for field in item_form.visible_fields %}
+            <div class="form-field">
+                {% if field.name == 'DELETE' %}
+                <label class="form-label form-checkbox-label">{{ field }} Remove</label>
+                {% else %}
+                <label class="form-label">{{ field.label }}</label>{{ field }}
+                {% endif %}
+                {% if field.errors %}<span class="form-error">{{ field.errors|striptags }}</span>{% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endfor %}
+    </div>
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Complete Sale</button>
+        <a href="{% url 'pharmacy:sale_list' %}" class="btn btn-secondary">Cancel</a>
+    </div>
+</form>
+{% endblock %}

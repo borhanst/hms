@@ -1,0 +1,43 @@
+{% if users %}
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in users %}
+            <tr>
+                <td>{{ u.username }}</td>
+                <td>{{ u.get_full_name|default:"-" }}</td>
+                <td>{{ u.email|default:"-" }}</td>
+                <td><span class="badge badge-info">{{ u.get_role_display }}</span></td>
+                <td>
+                    {% if u.is_active %}
+                        <span class="badge badge-success">Active</span>
+                    {% else %}
+                        <span class="badge badge-danger">Inactive</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'core:user_update' u.pk %}" class="btn btn-secondary btn-sm">Edit</a>
+                    <a href="{% url 'core:user_delete' u.pk %}" class="btn btn-danger btn-sm">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="empty-state">
+    <div class="empty-state-icon">👥</div>
+    <h3>No users found</h3>
+    <p>Create a new user to get started.</p>
+</div>
+{% endif %}

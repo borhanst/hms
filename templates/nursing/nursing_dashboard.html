@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Nursing Dashboard{% endblock %}{% block page_title %}Nursing Dashboard{% endblock %}
+{% block topbar_actions %}
+<a href="{% url 'nursing:note_create' %}" class="btn btn-primary btn-sm">+ New Note</a>
+<a href="{% url 'nursing:medication_create' %}" class="btn btn-success btn-sm"><i data-lucide="syringe"></i> Record Medication</a>
+{% endblock %}
+{% block content %}
+<div class="stats-grid">
+    <div class="stat-card cyan"><div class="stat-icon">📝</div><div class="stat-value">{{ total_notes }}</div><div class="stat-label">Total Notes</div></div>
+    {% if urgent_notes > 0 %}<div class="stat-card red"><div class="stat-icon">⚠️</div><div class="stat-value">{{ urgent_notes }}</div><div class="stat-label">Urgent/High Priority</div></div>{% endif %}
+    <div class="stat-card green"><div class="stat-icon">💉</div><div class="stat-value">{{ today_admins }}</div><div class="stat-label">Medications Given</div></div>
+</div>
+<div class="detail-grid" style="margin-top:24px;">
+    <div class="card">
+        <div class="card-header"><h3 class="card-title">Recent Notes</h3><a href="{% url 'nursing:note_list' %}" class="btn btn-secondary btn-sm">View All</a></div>
+        {% if recent_notes %}
+        <div class="table-container"><table>
+            <thead><tr><th>Title</th><th>Patient</th><th>Priority</th><th>Date</th></tr></thead>
+            <tbody>{% for n in recent_notes %}<tr>
+                <td>{{ n.title }}</td><td>{{ n.patient.full_name }}</td>
+                <td>{% if n.priority == 'URGENT' %}<span class="badge badge-danger">Urgent</span>{% elif n.priority == 'HIGH' %}<span class="badge badge-warning">High</span>{% else %}<span class="badge badge-info">{{ n.get_priority_display }}</span>{% endif %}</td>
+                <td>{{ n.created_at|date:"M d, H:i" }}</td>
+            </tr>{% endfor %}</tbody>
+        </table></div>
+        {% else %}<div class="empty-state"><p>No notes yet.</p></div>{% endif %}
+    </div>
+    <div class="card">
+        <div class="card-header"><h3 class="card-title">Recent Medications</h3><a href="{% url 'nursing:medication_list' %}" class="btn btn-secondary btn-sm">View All</a></div>
+        {% if recent_admins %}
+        <div class="table-container"><table>
+            <thead><tr><th>Medicine</th><th>Patient</th><th>Route</th><th>Date</th></tr></thead>
+            <tbody>{% for m in recent_admins %}<tr>
+                <td>{{ m.medicine_name }} {{ m.dosage }}</td><td>{{ m.patient.full_name }}</td>
+                <td>{{ m.get_route_display }}</td><td>{{ m.administered_at|date:"M d, H:i" }}</td>
+            </tr>{% endfor %}</tbody>
+        </table></div>
+        {% else %}<div class="empty-state"><p>No medications recorded.</p></div>{% endif %}
+    </div>
+</div>
+{% endblock %}

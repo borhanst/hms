@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Review Leave{% endblock %}{% block page_title %}Review Leave{% endblock %}
+{% block content %}
+<div class="card" style="max-width:600px;margin:0 auto;">
+    <div class="card-header"><h3 class="card-title">{{ leave.employee.get_full_name }} - {{ leave.get_leave_type_display }}</h3></div>
+    <div style="padding:0 24px 16px;">
+        <p><strong>From:</strong> {{ leave.start_date|date:"M d, Y" }} <strong>To:</strong> {{ leave.end_date|date:"M d, Y" }} ({{ leave.days }} days)</p>
+        <p><strong>Reason:</strong> {{ leave.reason }}</p>
+    </div>
+    <form method="post" style="padding:0 24px 24px;">{% csrf_token %}
+        {% for field in form %}<div class="form-field"><label class="form-label">{{ field.label }}</label>{{ field }}{% if field.errors %}<span class="form-error">{{ field.errors|striptags }}</span>{% endif %}</div>{% endfor %}
+        <div class="form-actions"><button type="submit" class="btn btn-primary">Submit Review</button><a href="{% url 'hr:leave_list' %}" class="btn btn-secondary">Cancel</a></div>
+    </form>
+</div>
+{% endblock %}

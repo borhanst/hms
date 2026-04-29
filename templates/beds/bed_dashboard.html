@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Bed Management{% endblock %}
+{% block page_title %}Bed Management{% endblock %}
+{% block topbar_actions %}
+<a href="{% url 'beds:admission_create' %}" class="btn btn-primary btn-sm"><i data-lucide="bed"></i> Admit Patient</a>
+<a href="{% url 'beds:bed_list' %}" class="btn btn-secondary btn-sm">View All Beds</a>
+{% endblock %}
+{% block content %}
+<div class="stats-grid">
+    <div class="stat-card cyan"><div class="stat-icon"><i data-lucide="bed"></i></div><div class="stat-value">{{ total_beds }}</div><div class="stat-label">Total Beds</div></div>
+    <div class="stat-card green"><div class="stat-icon"><i data-lucide="check-circle"></i></div><div class="stat-value">{{ available }}</div><div class="stat-label">Available</div></div>
+    <div class="stat-card red"><div class="stat-icon">🚫</div><div class="stat-value">{{ occupied }}</div><div class="stat-label">Occupied</div></div>
+    {% if maintenance > 0 %}
+    <div class="stat-card amber"><div class="stat-icon">🔧</div><div class="stat-value">{{ maintenance }}</div><div class="stat-label">Maintenance</div></div>
+    {% endif %}
+</div>
+{% if wards %}
+<div class="card" style="margin:24px 0;">
+    <div class="card-header"><h3 class="card-title">Wards Overview</h3><a href="{% url 'beds:ward_list' %}" class="btn btn-secondary btn-sm">Manage Wards</a></div>
+    <div class="table-container">
+        <table>
+            <thead><tr><th>Ward</th><th>Type</th><th>Total Beds</th><th>Occupied</th><th>Available</th><th>Price/Day</th></tr></thead>
+            <tbody>
+                {% for w in wards %}
+                <tr>
+                    <td>{{ w.name }}</td><td>{{ w.get_ward_type_display }}</td><td>{{ w.bed_count }}</td>
+                    <td>{{ w.occupied_count }}</td><td>{{ w.bed_count|add:"-"|add:w.occupied_count }}</td>
+                    <td>৳{{ w.price_per_day }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+<div class="card">
+    <div class="card-header"><h3 class="card-title">Active Admissions</h3></div>
+    {% if active_admissions %}
+    <div class="table-container">
+        <table>
+            <thead><tr><th>Patient</th><th>Bed</th><th>Ward</th><th>Doctor</th><th>Admitted</th><th>Days</th><th>Action</th></tr></thead>
+            <tbody>
+                {% for a in active_admissions %}
+                <tr>
+                    <td><a href="{% url 'patients:patient_detail' a.patient.pk %}">{{ a.patient.full_name }}</a></td>
+                    <td>Bed {{ a.bed.bed_number }}</td><td>{{ a.bed.ward.name }}</td>
+                    <td>{% if a.doctor %}Dr. {{ a.doctor.user.get_full_name }}{% else %}-{% endif %}</td>
+                    <td>{{ a.admitted_at|date:"M d, Y" }}</td><td>{{ a.days_stayed }}</td>
+                    <td><a href="{% url 'beds:admission_discharge' a.pk %}" class="btn btn-danger btn-sm">Discharge</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}<div class="empty-state"><p>No active admissions.</p></div>{% endif %}
+</div>
+{% endblock %}

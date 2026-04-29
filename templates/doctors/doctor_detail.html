@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Dr. {{ doctor.user.get_full_name }}{% endblock %}
+{% block page_title %}Doctor Details{% endblock %}
+
+{% block topbar_actions %}
+{% if user.is_admin or user.is_superuser %}
+<a href="{% url 'doctors:doctor_edit' doctor.pk %}" class="btn btn-primary btn-sm">Edit</a>
+<a href="{% url 'doctors:doctor_schedule_list' doctor.pk %}" class="btn btn-success btn-sm"><i data-lucide="calendar"></i> Schedule</a>
+<a href="{% url 'appointments:doctor_appointments' doctor.pk %}" class="btn btn-info btn-sm"><i data-lucide="clipboard-list"></i> Appointments</a>
+<a href="{% url 'doctors:doctor_delete' doctor.pk %}" class="btn btn-danger btn-sm">Delete</a>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="detail-header">
+    <div>
+        <h1 class="detail-title">Dr. {{ doctor.user.get_full_name }}</h1>
+        <div class="detail-meta">
+            <span class="detail-meta-item"><i data-lucide="stethoscope" style="width:14px;height:14px;"></i> {{ doctor.specialization }}</span>
+            <span class="detail-meta-item"><i data-lucide="building-2" style="width:14px;height:14px;"></i> {{ doctor.get_department_display }}</span>
+            {% if doctor.is_available %}
+                <span class="badge badge-success">Available</span>
+            {% else %}
+                <span class="badge badge-neutral">Unavailable</span>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="detail-grid">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Personal Information</h3>
+        </div>
+        <div class="detail-field">
+            <div class="detail-field-label">Email</div>
+            <div class="detail-field-value">{{ doctor.user.email|default:"-" }}</div>
+        </div>
+        <div class="detail-field">
+            <div class="detail-field-label">Phone</div>
+            <div class="detail-field-value">{{ doctor.phone|default:"-" }}</div>
+        </div>
+        <div class="detail-field">
+            <div class="detail-field-label">Username</div>
+            <div class="detail-field-value">{{ doctor.user.username }}</div>
+        </div>
+        <div class="detail-field">
+            <div class="detail-field-label">Consultation Fee</div>
+            <div class="detail-field-value">৳{{ doctor.consultation_fee }}</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Professional Info</h3>
+        </div>
+        <div class="detail-field">
+            <div class="detail-field-label">Specialization</div>
+            <div class="detail-field-value">{{ doctor.specialization }}</div>
+        </div>
+        <div class="detail-field">
+            <div class="detail-field-label">Department</div>
+            <div class="detail-field-value">{{ doctor.get_department_display }}</div>
+        </div>
+        <div class="detail-field">
+            <div class="detail-field-label">Bio</div>
+            <div class="detail-field-value">{{ doctor.bio|default:"No bio provided." }}</div>
+        </div>
+        <div class="detail-field">
+            <div class="detail-field-label">Joined</div>
+            <div class="detail-field-value">{{ doctor.created_at|date:"M d, Y" }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Patients assigned to this doctor -->
+{% if doctor.patients.exists %}
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Assigned Patients ({{ doctor.patients.count }})</h3>
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr><th>Name</th><th>Phone</th><th>Blood Group</th></tr>
+            </thead>
+            <tbody>
+                {% for patient in doctor.patients.all|slice:":10" %}
+                <tr>
+                    <td><a href="{% url 'patients:patient_detail' patient.pk %}">{{ patient.full_name }}</a></td>
+                    <td>{{ patient.phone }}</td>
+                    <td>{{ patient.blood_group|default:"-" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<div style="margin-top:24px;">
+    <a href="{% url 'doctors:doctor_list' %}" class="btn btn-secondary">← Back to Doctors</a>
+</div>
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Appointments - Dr. {{ doctor.user.get_full_name }}{% endblock %}
+{% block page_title %}Appointments{% endblock %}
+
+{% block content %}
+<div class="detail-header">
+    <div>
+        <h1 class="detail-title">Dr. {{ doctor.user.get_full_name }}</h1>
+        <div class="detail-meta">
+            <span class="detail-meta-item">{{ doctor.specialization }}</span>
+            <span class="detail-meta-item">All Appointments</span>
+        </div>
+    </div>
+</div>
+
+{% if appointments %}
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>Patient</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Status</th>
+                <th>Reason</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for appt in appointments %}
+            <tr>
+                <td><a href="{% url 'patients:patient_detail' appt.patient.pk %}">{{ appt.patient.full_name }}</a></td>
+                <td>{{ appt.date|date:"M d, Y" }}</td>
+                <td>{{ appt.start_time|time:"g:i A" }} - {{ appt.end_time|time:"g:i A" }}</td>
+                <td>
+                    {% if appt.status == 'SCHEDULED' %}<span class="badge badge-info">Scheduled</span>
+                    {% elif appt.status == 'COMPLETED' %}<span class="badge badge-success">Completed</span>
+                    {% elif appt.status == 'CANCELLED' %}<span class="badge badge-neutral">Cancelled</span>
+                    {% elif appt.status == 'NO_SHOW' %}<span class="badge badge-danger">No Show</span>
+                    {% else %}<span class="badge badge-warning">In Progress</span>{% endif %}
+                </td>
+                <td>{{ appt.reason|truncatewords:5|default:"-" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% if page_obj.has_other_pages %}
+<div class="pagination">
+    {% if page_obj.has_previous %}
+        <a href="?page=1" class="pagination-link">&laquo; First</a>
+        <a href="?page={{ page_obj.previous_page_number }}" class="pagination-link">Previous</a>
+    {% endif %}
+    <span class="pagination-info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}" class="pagination-link">Next</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}" class="pagination-link">Last &raquo;</a>
+    {% endif %}
+</div>
+{% endif %}
+{% else %}
+<div class="empty-state">
+    <div class="empty-state-icon"><i data-lucide="calendar"></i></div>
+    <h3>No appointments scheduled</h3>
+    <p>This doctor has no appointments yet.</p>
+</div>
+{% endif %}
+
+<div style="margin-top:24px;">
+    <a href="{% url 'doctors:doctor_detail' doctor.pk %}" class="btn btn-secondary">← Back to Doctor</a>
+</div>
+{% endblock %}

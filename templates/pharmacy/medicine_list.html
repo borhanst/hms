@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Medicines{% endblock %}
+{% block page_title %}Medicines{% endblock %}
+{% block topbar_actions %}
+<a href="{% url 'pharmacy:medicine_create' %}" class="btn btn-primary btn-sm">+ Add Medicine</a>
+{% endblock %}
+{% block content %}
+<div class="toolbar">
+    <div class="search-box">
+        <input type="text" name="search" placeholder="Search medicines..."
+               value="{{ search }}"
+               hx-get="{% url 'pharmacy:medicine_list' %}"
+               hx-trigger="keyup changed delay:300ms"
+               hx-target="#medicine-table"
+               hx-include="[name='category'], [name='expiry_status']">
+    </div>
+    <select name="category" class="filter-select"
+            hx-get="{% url 'pharmacy:medicine_list' %}"
+            hx-trigger="change"
+            hx-target="#medicine-table"
+            hx-include="[name='search'], [name='expiry_status']">
+        <option value="">All Categories</option>
+        {% for val, label in category_choices %}
+        <option value="{{ val }}" {% if category == val %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+    </select>
+    <select name="expiry_status" class="filter-select"
+            hx-get="{% url 'pharmacy:medicine_list' %}"
+            hx-trigger="change"
+            hx-target="#medicine-table"
+            hx-include="[name='search'], [name='category']">
+        <option value="">All Expiry</option>
+        <option value="expired" {% if expiry_status == "expired" %}selected{% endif %}>Expired</option>
+        <option value="near_expiry" {% if expiry_status == "near_expiry" %}selected{% endif %}>Near Expiry</option>
+    </select>
+    {% if low_stock_count > 0 %}
+    <a href="?low_stock=1" class="btn btn-danger btn-sm"><i data-lucide="alert-triangle" style="width:14px;height:14px;"></i> Low Stock ({{ low_stock_count }})</a>
+    {% endif %}
+    {% if expired_count > 0 %}
+    <a href="?expiry_status=expired" class="btn btn-danger btn-sm"><i data-lucide="ban" style="width:14px;height:14px;"></i> Expired ({{ expired_count }})</a>
+    {% endif %}
+    {% if near_expiry_count > 0 %}
+    <a href="?expiry_status=near_expiry" class="btn btn-secondary btn-sm"><i data-lucide="calendar-clock" style="width:14px;height:14px;"></i> Near Expiry ({{ near_expiry_count }})</a>
+    {% endif %}
+</div>
+<div id="medicine-table">
+    {% include "pharmacy/partials/medicine_table.html" %}
+</div>
+{% endblock %}

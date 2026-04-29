@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Reports{% endblock %}
+{% block page_title %}Diagnostic Reports{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'reports:report_create' %}" class="btn btn-primary btn-sm">+ New Report</a>
+{% endblock %}
+
+{% block content %}
+<div class="toolbar">
+    <div class="search-box">
+        <input type="text" name="search" placeholder="Search tests or patients..."
+               value="{{ search }}"
+               hx-get="{% url 'reports:report_list' %}"
+               hx-trigger="keyup changed delay:300ms"
+               hx-target="#report-table"
+               hx-include="[name='status'],[name='category']">
+    </div>
+    <select name="status" class="filter-select"
+            hx-get="{% url 'reports:report_list' %}"
+            hx-trigger="change"
+            hx-target="#report-table"
+            hx-include="[name='search'],[name='category']">
+        <option value="">All Status</option>
+        {% for val, label in status_choices %}
+        <option value="{{ val }}" {% if status == val %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+    </select>
+    <select name="category" class="filter-select"
+            hx-get="{% url 'reports:report_list' %}"
+            hx-trigger="change"
+            hx-target="#report-table"
+            hx-include="[name='search'],[name='status']">
+        <option value="">All Categories</option>
+        {% for val, label in category_choices %}
+        <option value="{{ val }}" {% if category == val %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+    </select>
+</div>
+
+<div id="report-table">
+    {% include "reports/partials/report_table.html" %}
+</div>
+{% endblock %}

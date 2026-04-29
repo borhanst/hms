@@ -1,0 +1,202 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}HMS{% endblock %} — Hospital Management</title>
+    <meta name="description" content="Hospital & Diagnostic Management System">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Sora:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
+    <script src="https://unpkg.com/alpinejs@3.14.8/dist/cdn.min.js" defer></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body>
+    <div class="layout" x-data="{ sidebarOpen: false }" x-init="$nextTick(() => { if (window.renderIcons) window.renderIcons(); })">
+        <!-- Sidebar Overlay (mobile) -->
+        <div class="sidebar-overlay" :class="{ active: sidebarOpen }" @click="sidebarOpen = false"></div>
+
+        <!-- Sidebar -->
+        <aside class="sidebar" :class="{ open: sidebarOpen }">
+            <div class="sidebar-header">
+                <div class="sidebar-logo"><i data-lucide="cross"></i></div>
+                <div class="sidebar-brand">
+                    <h1>MediCore</h1>
+                    <span>Hospital OS</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                {% for section in sidebar_sections %}
+                    <div class="nav-section">
+                        <div class="nav-section-title">{{ section.title }}</div>
+                        {% for item in section.items %}
+                            {% if item.children %}
+                                <div class="nav-menu-group"
+                                     x-data="{ open: {% if item.active_app and request.resolver_match.app_name == item.active_app %}true{% else %}false{% endif %} }"
+                                     :class="{ open: open }">
+                                    <button type="button"
+                                            class="nav-link nav-link-parent {% if item.active_app and request.resolver_match.app_name == item.active_app %}active{% endif %}"
+                                            @click="open = !open"
+                                            :aria-expanded="open.toString()"
+                                            aria-controls="pharmacy-submenu">
+                                        <i data-lucide="{{ item.icon }}" class="nav-icon"></i>
+                                        <span>{{ item.label }}</span>
+                                        <i data-lucide="chevron-down" class="nav-submenu-chevron"></i>
+                                    </button>
+                                    <div class="nav-submenu" id="pharmacy-submenu">
+                                        {% for child in item.children %}
+                                            <a href="{{ child.href }}" class="nav-submenu-link {% if child.active_url and request.resolver_match.url_name == child.active_url %}active{% endif %}">
+                                                {{ child.label }}
+                                            </a>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% else %}
+                                <a href="{{ item.href }}" class="nav-link {% if item.active_url and request.resolver_match.url_name == item.active_url %}active{% elif item.active_app and request.resolver_match.app_name == item.active_app %}active{% endif %}">
+                                    <i data-lucide="{{ item.icon }}" class="nav-icon"></i> {{ item.label }}
+                                </a>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="{% url 'core:profile' %}" class="user-card" style="text-decoration:none;">
+                    <div class="user-avatar">{{ user.first_name|first|default:"U" }}</div>
+                    <div class="user-info">
+                        <div class="user-name">{{ user.get_full_name|default:user.username }}</div>
+                        <div class="user-role">{{ user.get_role_display }}</div>
+                    </div>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button class="hamburger" @click="sidebarOpen = !sidebarOpen" aria-label="Toggle sidebar">
+                        <i data-lucide="menu" style="width:20px;height:20px;"></i>
+                    </button>
+                    <h2 class="page-title">{% block page_title %}Dashboard{% endblock %}</h2>
+                </div>
+                <div class="topbar-right">
+                    <!-- Theme Toggle -->
+                    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme"
+                            x-data="{ theme: localStorage.getItem('hms-theme') || 'dark' }"
+                            x-init="
+                                document.documentElement.setAttribute('data-theme', theme);
+                                $el.setAttribute('data-theme', theme);
+                            "
+                            @click="
+                                const next = theme === 'dark' ? 'light' : 'dark';
+                                document.documentElement.setAttribute('data-theme', next);
+                                localStorage.setItem('hms-theme', next);
+                                theme = next;
+                                $el.setAttribute('data-theme', next);
+                            ">
+                        <i data-lucide="sun" class="theme-icon theme-icon-sun"></i>
+                        <i data-lucide="moon" class="theme-icon theme-icon-moon"></i>
+                    </button>
+
+                    {% block topbar_actions %}{% endblock %}
+                    <a href="{% url 'core:logout' %}" class="btn btn-secondary btn-sm">
+                        <i data-lucide="log-out" style="width:14px;height:14px;"></i>
+                        <span class="btn-text">Logout</span>
+                    </a>
+                </div>
+            </header>
+
+            <!-- Breadcrumbs -->
+            {% block breadcrumbs %}
+            <nav class="breadcrumbs" aria-label="Breadcrumb">
+                <a href="{% url 'core:dashboard' %}">
+                    <i data-lucide="home" style="width:12px;height:12px;vertical-align:-1px;"></i>
+                    Home
+                </a>
+                <span class="sep">/</span>
+                <span class="current">{% block breadcrumb_current %}Dashboard{% endblock %}</span>
+            </nav>
+            {% endblock %}
+
+            <div class="content-area">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}"
+                             x-data="{ show: true }"
+                             x-show="show"
+                             x-transition:leave="transition ease-in duration-200"
+                             x-transition:leave-start="opacity-100 max-h-20"
+                             x-transition:leave-end="opacity-0 max-h-0"
+                             x-init="setTimeout(() => show = false, 5000)">
+                            {% if message.tags == 'success' %}
+                                <i data-lucide="check-circle"></i>
+                            {% elif message.tags == 'error' %}
+                                <i data-lucide="alert-circle"></i>
+                            {% elif message.tags == 'warning' %}
+                                <i data-lucide="alert-triangle"></i>
+                            {% else %}
+                                <i data-lucide="info"></i>
+                            {% endif %}
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+        
+        <!-- Toast Notification System -->
+        {% include 'components/toast.html' %}
+        
+        <!-- Convert Django messages to toasts -->
+        {% if messages %}
+            {% for message in messages %}
+            <div x-data="{}" 
+                 x-init="$nextTick(() => {
+                     $dispatch('toast', {
+                         type: '{{ message.tags|default:'info' }}',
+                         title: '{% if message.tags == "success" %}Success{% elif message.tags == "error" %}Error{% elif message.tags == "warning" %}Warning{% else %}Info{% endif %}',
+                         message: '{{ message }}'
+                     });
+                 })"
+                 style="display:none;"></div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <script>
+        // Initialize Lucide Icons after every HTMX swap
+        window.renderIcons = function() {
+            if (!window.lucide) return;
+            if (typeof window.lucide.createIcons === 'function') {
+                window.lucide.createIcons();
+            } else if (typeof window.lucide.create === 'function') {
+                window.lucide.create();
+            }
+        };
+
+        document.addEventListener('htmx:afterSwap', function() {
+            window.renderIcons();
+        });
+        document.addEventListener('DOMContentLoaded', function() {
+            window.renderIcons();
+        });
+
+        // Persist theme choice
+        (function() {
+            const saved = localStorage.getItem('hms-theme');
+            if (saved) {
+                document.documentElement.setAttribute('data-theme', saved);
+            }
+        })();
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

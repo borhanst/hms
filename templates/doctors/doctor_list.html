@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Doctors{% endblock %}
+{% block page_title %}Doctors{% endblock %}
+
+{% block topbar_actions %}
+{% if user.is_admin or user.is_superuser %}
+<a href="{% url 'doctors:doctor_create' %}" class="btn btn-primary btn-sm">+ Add Doctor</a>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="toolbar">
+    <div class="search-box">
+        <input type="text" name="search" placeholder="Search doctors..."
+               value="{{ search }}"
+               hx-get="{% url 'doctors:doctor_list' %}"
+               hx-trigger="keyup changed delay:300ms"
+               hx-target="#doctor-table"
+               hx-include="[name='department']">
+    </div>
+    <select name="department" class="filter-select"
+            hx-get="{% url 'doctors:doctor_list' %}"
+            hx-trigger="change"
+            hx-target="#doctor-table"
+            hx-include="[name='search']">
+        <option value="">All Departments</option>
+        {% for val, label in departments %}
+        <option value="{{ val }}" {% if department == val %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+    </select>
+</div>
+
+<div id="doctor-table">
+    {% include "doctors/partials/doctor_table.html" %}
+</div>
+{% endblock %}

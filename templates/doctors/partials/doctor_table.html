@@ -1,0 +1,58 @@
+{% if doctors %}
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Specialization</th>
+                <th>Department</th>
+                <th>Phone</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for doctor in doctors %}
+            <tr>
+                <td><a href="{% url 'doctors:doctor_detail' doctor.pk %}">Dr. {{ doctor.user.get_full_name }}</a></td>
+                <td>{{ doctor.specialization }}</td>
+                <td><span class="badge badge-info">{{ doctor.get_department_display }}</span></td>
+                <td>{{ doctor.phone|default:"-" }}</td>
+                <td>
+                    {% if doctor.is_available %}
+                        <span class="badge badge-success">Available</span>
+                    {% else %}
+                        <span class="badge badge-neutral">Unavailable</span>
+                    {% endif %}
+                </td>
+                <td style="display:flex;gap:6px;">
+                    <a href="{% url 'doctors:doctor_detail' doctor.pk %}" class="btn btn-secondary btn-sm">View</a>
+                    {% if user.is_admin or user.is_superuser %}
+                    <a href="{% url 'doctors:doctor_edit' doctor.pk %}" class="btn btn-secondary btn-sm">Edit</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% if page_obj.has_other_pages %}
+<div class="pagination">
+    {% if page_obj.has_previous %}
+        <a href="?page=1&search={{ search }}&department={{ department }}" class="pagination-link">&laquo; First</a>
+        <a href="?page={{ page_obj.previous_page_number }}&search={{ search }}&department={{ department }}" class="pagination-link">Previous</a>
+    {% endif %}
+    <span class="pagination-info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&search={{ search }}&department={{ department }}" class="pagination-link">Next</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}&search={{ search }}&department={{ department }}" class="pagination-link">Last &raquo;</a>
+    {% endif %}
+</div>
+{% endif %}
+{% else %}
+<div class="empty-state">
+    <div class="empty-state-icon"><i data-lucide="stethoscope"></i></div>
+    <h3>No doctors found</h3>
+    <p>Add a doctor to get started.</p>
+</div>
+{% endif %}

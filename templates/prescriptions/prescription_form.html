@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="card form-console" x-data="prescriptionForm()">
+    <form id="prescription-form" method="post" data-medicine-search-url="{% url 'prescriptions:medicine_search' %}">
+        {% csrf_token %}
+
+        <h3 class="form-section-title">Patient & Diagnosis</h3>
+        <div class="form-grid">
+            {% for field in form %}
+            <div class="form-group">
+                <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}<div class="form-errors">{{ field.errors }}</div>{% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <h3 class="form-section-title">Medicines</h3>
+
+        {{ formset.management_form }}
+
+        <div class="formset-header prescription-formset-header">
+            <span>Medicine</span>
+            <span>Dosage</span>
+            <span>Qty</span>
+            <span>Frequency</span>
+            <span>Duration</span>
+            <span>Unit Price</span>
+            <span>Total</span>
+            <span>Instructions</span>
+            <span></span>
+        </div>
+
+        <div id="formset-container">
+            {% for item_form in formset %}
+            <div class="formset-row prescription-formset-row">
+                {% for hidden in item_form.hidden_fields %}{{ hidden }}{% endfor %}
+                <div class="medicine-picker">
+                    {{ item_form.medicine_search }}
+                    <div class="medicine-suggestions" data-role="medicine-suggestions"></div>
+                </div>
+                <div>{{ item_form.dosage }}</div>
+                <div>{{ item_form.quantity }}</div>
+                <div>{{ item_form.frequency }}</div>
+                <div>{{ item_form.duration }}</div>
+                <div>{{ item_form.unit_price }}</div>
+                <div>
+                    <input
+                        type="text"
+                        class="form-input medicine-total"
+                        data-role="medicine-total"
+                        value="{% if item_form.instance.pk %}{{ item_form.instance.total }}{% endif %}"
+                        readonly
+                    >
+                </div>
+                <div>{{ item_form.instructions }}</div>
+                <div>
+                    {% if item_form.DELETE %}
+                        <label class="remove-row-btn" title="Remove">
+                            {{ item_form.DELETE }}
+                            ✕
+                        </label>
+                    {% endif %}
+                </div>
+                {% if item_form.errors %}
+                <div style="grid-column:1/-1;"><div class="form-errors">{{ item_form.errors }}</div></div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <button type="button" class="btn btn-secondary btn-sm mt-16" @click="addRow()">
+            <i data-lucide="plus"></i>
+            Add Medicine
+        </button>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Save Prescription</button>
+            <a href="{% url 'prescriptions:prescription_list' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<script>
+function prescriptionForm() {
+    return {
+        addRow() {
+            window.addPrescriptionItemRow();
+        },
+    };
+}
+
+(function () {
+    const form = document.getElementById("prescription-form");
+    if (!form) return;
+
+    const container = document.getElementById("formset-container");
+    const totalInput = document.getElementById("id_items-TOTAL_FORMS");
+    const searchUrl = form.dataset.medicineSearchUrl;
+    const template = container.querySelector(".formset-row");
+
+    const clearSuggestions = (row) => {
+        const suggestions = row.querySelector('[data-role="medicine-suggestions"]');
+        if (suggestions) {
+            suggestions.innerHTML = "";
+            suggestions.classList.remove("open");
+        }
+    };
+
+    const updateRowTotal = (row) => {
+        const quantityInput = row.querySelector('[data-role="medicine-quantity"]');
+        const priceInput = row.querySelector('[data-role="medicine-unit-price"]');
+        const totalInput = row.querySelector('[data-role="medicine-total"]');
+        if (!quantityInput || !priceInput || !totalInput) return;
+
+        const quantity = parseFloat(quantityInput.value || "0");
+        const price = parseFloat(priceInput.value || "0");
+        totalInput.value = quantity > 0 && price > 0 ? (quantity * price).toFixed(2) : "";
+    };
+
+    const setMedicine = (row, medicine) => {
+        const hiddenInput = row.querySelector('[data-role="medicine-id"]');
+        const searchInput = row.querySelector('[data-role="medicine-search"]');
+        const priceInput = row.querySelector('[data-role="medicine-unit-price"]');
+        const quantityInput = row.querySelector('[data-role="medicine-quantity"]');
+
+        if (hiddenInput) hiddenInput.value = medicine.id;
+        if (searchInput) searchInput.value = medicine.name;
+        if (priceInput) priceInput.value = medicine.unit_price;
+        if (quantityInput) quantityInput.value = 1;
+        clearSuggestions(row);
+        updateRowTotal(row);
+    };
+
+    const renderSuggestions = (row, medicines) => {
+        const suggestions = row.querySelector('[data-role="medicine-suggestions"]');
+        if (!suggestions) return;
+
+        if (!medicines.length) {
+            suggestions.innerHTML = '<div class="medicine-suggestion-empty">No medicines found</div>';
+            suggestions.classList.add("open");
+            return;
+        }
+
+        suggestions.innerHTML = medicines.map((medicine) => (
+            `<button type="button" class="medicine-suggestion" data-medicine-id="${medicine.id}" data-medicine-name="${medicine.name}" data-medicine-price="${medicine.unit_price}">
+                <strong>${medicine.name}</strong>
+                <span>${medicine.generic_name || ""}${medicine.manufacturer ? " · " + medicine.manufacturer : ""}</span>
+                <span>৳${medicine.unit_price}</span>
+            </button>`
+        )).join("");
+        suggestions.classList.add("open");
+    };
+
+    const searchMedicines = async (row, query) => {
+        if (!query) {
+            clearSuggestions(row);
+            const hiddenInput = row.querySelector('[data-role="medicine-id"]');
+            if (hiddenInput) hiddenInput.value = "";
+            return;
+        }
+
+        const response = await fetch(`${searchUrl}?q=${encodeURIComponent(query)}`, {
+            headers: { "X-Requested-With": "XMLHttpRequest" },
+        });
+        const medicines = await response.json();
+        renderSuggestions(row, medicines);
+    };
+
+    const cloneRow = () => {
+        const total = parseInt(totalInput.value, 10);
+        const newRow = template.cloneNode(true);
+
+        newRow.querySelectorAll("input, select, textarea").forEach((el) => {
+            if (el.name) {
+                el.name = el.name.replace(/-\d+-/, `-${total}-`);
+            }
+            if (el.id) {
+                el.id = el.id.replace(/-\d+-/, `-${total}-`);
+            }
+            if (el.type === "checkbox") {
+                el.checked = false;
+            } else if (el.matches('[data-role="medicine-quantity"]')) {
+                el.value = 1;
+            } else if (el.matches('[data-role="medicine-unit-price"]') || el.matches('[data-role="medicine-total"]')) {
+                el.value = "";
+            } else if (el.matches('[data-role="medicine-search"]') || el.matches('[data-role="medicine-id"]')) {
+                el.value = "";
+            } else {
+                el.value = "";
+            }
+        });
+
+        clearSuggestions(newRow);
+        updateRowTotal(newRow);
+        container.appendChild(newRow);
+        totalInput.value = total + 1;
+    };
+
+    window.addPrescriptionItemRow = cloneRow;
+
+    container.addEventListener("input", (event) => {
+        const row = event.target.closest(".formset-row");
+        if (!row) return;
+
+        if (event.target.matches('[data-role="medicine-search"]')) {
+            const hiddenInput = row.querySelector('[data-role="medicine-id"]');
+            if (hiddenInput) hiddenInput.value = "";
+            const query = event.target.value.trim();
+            window.clearTimeout(row._medicineSearchTimer);
+            row._medicineSearchTimer = window.setTimeout(() => {
+                searchMedicines(row, query).catch(() => clearSuggestions(row));
+            }, 250);
+        }
+
+        if (event.target.matches('[data-role="medicine-quantity"], [data-role="medicine-unit-price"]')) {
+            updateRowTotal(row);
+        }
+    });
+
+    container.addEventListener("click", (event) => {
+        const suggestion = event.target.closest(".medicine-suggestion");
+        if (!suggestion) return;
+        const row = suggestion.closest(".formset-row");
+        if (!row) return;
+
+        setMedicine(row, {
+            id: suggestion.dataset.medicineId,
+            name: suggestion.dataset.medicineName,
+            unit_price: suggestion.dataset.medicinePrice,
+        });
+    });
+
+    container.querySelectorAll(".formset-row").forEach((row) => {
+        const quantityInput = row.querySelector('[data-role="medicine-quantity"]');
+        const priceInput = row.querySelector('[data-role="medicine-unit-price"]');
+        if (quantityInput && !quantityInput.value) quantityInput.value = 1;
+        if (priceInput && priceInput.value) {
+            updateRowTotal(row);
+        }
+    });
+})();
+</script>
+{% endblock %}

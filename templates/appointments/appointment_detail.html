@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Appointment Details{% endblock %}
+{% block page_title %}Appointment Details{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'appointments:appointment_edit' appointment.pk %}" class="btn btn-primary btn-sm">Edit</a>
+<a href="{% url 'appointments:appointment_delete' appointment.pk %}" class="btn btn-danger btn-sm">Delete</a>
+{% endblock %}
+
+{% block content %}
+<div class="detail-header">
+    <div>
+        <h1 class="detail-title">Appointment</h1>
+        <div class="detail-meta">
+            <span class="detail-meta-item"><i data-lucide="user" style="width:14px;height:14px;"></i> {{ appointment.patient.full_name }}</span>
+            <span class="detail-meta-item"><i data-lucide="stethoscope" style="width:14px;height:14px;"></i> Dr. {{ appointment.doctor.user.get_full_name }}</span>
+            <span class="detail-meta-item"><i data-lucide="calendar" style="width:14px;height:14px;"></i> {{ appointment.date|date:"M d, Y" }}</span>
+            {% if appointment.status == 'SCHEDULED' %}<span class="badge badge-info">Scheduled</span>
+            {% elif appointment.status == 'IN_PROGRESS' %}<span class="badge badge-warning">In Progress</span>
+            {% elif appointment.status == 'COMPLETED' %}<span class="badge badge-success">Completed</span>
+            {% elif appointment.status == 'CANCELLED' %}<span class="badge badge-neutral">Cancelled</span>
+            {% else %}<span class="badge badge-danger">No Show</span>{% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="detail-grid">
+    <div class="card">
+        <div class="card-header"><h3 class="card-title">Appointment Info</h3></div>
+        <div class="detail-field">
+            <div class="detail-field-label">Time</div>
+            <div class="detail-field-value">{{ appointment.start_time|time:"g:i A" }} - {{ appointment.end_time|time:"g:i A" }}</div>
+        </div>
+        {% if appointment.reason %}
+        <div class="detail-field">
+            <div class="detail-field-label">Reason</div>
+            <div class="detail-field-value">{{ appointment.reason }}</div>
+        </div>
+        {% endif %}
+        {% if appointment.notes %}
+        <div class="detail-field">
+            <div class="detail-field-label">Notes</div>
+            <div class="detail-field-value">{{ appointment.notes }}</div>
+        </div>
+        {% endif %}
+        <div class="detail-field">
+            <div class="detail-field-label">Created By</div>
+            <div class="detail-field-value">{{ appointment.created_by.get_full_name|default:appointment.created_by.username|default:"-" }}</div>
+        </div>
+        <div class="detail-field">
+            <div class="detail-field-label">Created At</div>
+            <div class="detail-field-value">{{ appointment.created_at|date:"M d, Y H:i" }}</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><h3 class="card-title">Patient</h3></div>
+        <div class="detail-field">
+            <div class="detail-field-label">Name</div>
+            <div class="detail-field-value"><a href="{% url 'patients:patient_detail' appointment.patient.pk %}">{{ appointment.patient.full_name }}</a></div>
+        </div>
+        <div class="detail-field">
+            <div class="detail-field-label">Phone</div>
+            <div class="detail-field-value">{{ appointment.patient.phone }}</div>
+        </div>
+        <div class="detail-field">
+            <div class="detail-field-label">Blood Group</div>
+            <div class="detail-field-value">{{ appointment.patient.blood_group|default:"-" }}</div>
+        </div>
+    </div>
+</div>
+
+<div style="margin-top:24px;">
+    <a href="{% url 'appointments:appointment_list' %}" class="btn btn-secondary">← Back to Appointments</a>
+</div>
+{% endblock %}

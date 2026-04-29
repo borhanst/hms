@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Prescription Details{% endblock %}
+{% block page_title %}Prescription Details{% endblock %}
+
+{% block topbar_actions %}
+{% if not user.is_receptionist %}
+<a href="{% url 'prescriptions:prescription_edit' prescription.pk %}" class="btn btn-primary btn-sm">Edit</a>
+{% endif %}
+<a href="{% url 'prescriptions:prescription_print' prescription.pk %}" class="btn btn-success btn-sm"><i data-lucide="printer"></i> Print</a>
+{% if user.is_admin or user.is_superuser %}
+<a href="{% url 'prescriptions:prescription_delete' prescription.pk %}" class="btn btn-danger btn-sm">Delete</a>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="detail-header">
+    <div>
+        <h1 class="detail-title">Prescription</h1>
+        <div class="detail-meta">
+            <span class="detail-meta-item"><i data-lucide="user" style="width:14px;height:14px;"></i> {{ prescription.patient.full_name }}</span>
+            <span class="detail-meta-item"><i data-lucide="stethoscope" style="width:14px;height:14px;"></i> {% if prescription.doctor %}Dr. {{ prescription.doctor.user.get_full_name }}{% else %}-{% endif %}</span>
+            <span class="detail-meta-item"><i data-lucide="calendar" style="width:14px;height:14px;"></i> {{ prescription.created_at|date:"M d, Y H:i" }}</span>
+            {% if prescription.status == 'ACTIVE' %}<span class="badge badge-success">Active</span>
+            {% elif prescription.status == 'COMPLETED' %}<span class="badge badge-info">Completed</span>
+            {% else %}<span class="badge badge-danger">Discontinued</span>{% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="detail-grid">
+    <div class="card">
+        <div class="card-header"><h3 class="card-title">Diagnosis</h3></div>
+        <div class="detail-field">
+            <div class="detail-field-value" style="white-space:pre-wrap;">{{ prescription.diagnosis }}</div>
+        </div>
+        {% if prescription.notes %}
+        <div class="detail-field">
+            <div class="detail-field-label">Notes</div>
+            <div class="detail-field-value">{{ prescription.notes }}</div>
+        </div>
+        {% endif %}
+        {% if prescription.follow_up_date %}
+        <div class="detail-field">
+            <div class="detail-field-label">Follow-up Date</div>
+            <div class="detail-field-value">{{ prescription.follow_up_date|date:"M d, Y" }}</div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Medicines -->
+<div class="card" style="margin-top:24px;">
+    <div class="card-header">
+        <h3 class="card-title">Medicines ({{ prescription.items.count }})</h3>
+    </div>
+    {% if prescription.items.exists %}
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Medicine</th>
+                    <th>Dosage</th>
+                    <th>Qty</th>
+                    <th>Frequency</th>
+                    <th>Duration</th>
+                    <th>Unit Price</th>
+                    <th>Total</th>
+                    <th>Instructions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in prescription.items.all %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td><strong>{{ item.display_medicine_name }}</strong></td>
+                    <td>{{ item.dosage }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td><span class="badge badge-info">{{ item.get_frequency_display }}</span></td>
+                    <td>{{ item.duration }}</td>
+                    <td>৳{{ item.display_unit_price }}</td>
+                    <td>৳{{ item.total }}</td>
+                    <td>{{ item.instructions|default:"-" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state"><p>No medicines added.</p></div>
+    {% endif %}
+</div>
+
+<div style="margin-top:24px;">
+    <a href="{% url 'prescriptions:prescription_list' %}" class="btn btn-secondary">← Back to Prescriptions</a>
+</div>
+{% endblock %}

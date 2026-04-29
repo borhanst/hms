@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Purchases{% endblock %}
+{% block page_title %}Purchases{% endblock %}
+{% block topbar_actions %}<a href="{% url 'pharmacy:purchase_create' %}" class="btn btn-primary btn-sm">+ New Purchase</a>{% endblock %}
+{% block content %}
+<div class="toolbar">
+    <form method="get">
+        <select name="status" class="filter-select" onchange="this.form.submit()">
+            <option value="">All Statuses</option>
+            {% for value,label in status_choices %}
+            <option value="{{ value }}" {% if status == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </form>
+</div>
+<div class="card">
+    <div class="table-container">
+        <table>
+            <thead><tr><th>Supplier</th><th>Reference</th><th>Date</th><th>Status</th><th>Total</th><th></th></tr></thead>
+            <tbody>
+                {% for purchase in purchases %}
+                <tr>
+                    <td>{{ purchase.supplier.name }}</td>
+                    <td>{{ purchase.reference_number|default:"-" }}</td>
+                    <td>{{ purchase.purchase_date|date:"M d, Y" }}</td>
+                    <td><span class="badge">{{ purchase.get_status_display }}</span></td>
+                    <td>৳{{ purchase.total }}</td>
+                    <td><a href="{% url 'pharmacy:purchase_detail' purchase.pk %}" class="btn btn-secondary btn-sm">Open</a></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6"><div class="empty-state"><p>No purchases yet.</p></div></td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

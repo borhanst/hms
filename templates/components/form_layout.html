@@ -1,0 +1,86 @@
+{% comment %}
+Form Layout Component
+Usage:
+  {% include 'components/form_layout.html' with 
+      form=form
+      title="Register Patient"
+      submit_label="Save"
+      cancel_url="#"
+      grid=True
+  %}
+{% endcomment %}
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">{{ title|default:'Form' }}</h3>
+    </div>
+    
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        {% if form.errors %}
+        <div class="alert alert-error" style="margin:16px;">
+            <i data-lucide="x-circle"></i>
+            <div>
+                <strong>Please correct the following errors:</strong>
+                <ul style="margin:4px 0 0 16px;">
+                    {% for field, errors in form.errors.items %}
+                        {% for error in errors %}
+                        <li>{{ field }}: {{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="{% if grid %}form-grid{% endif %}" style="padding:24px;">
+            {% for field in form %}
+            {% if not field.is_hidden %}
+            <div class="form-group">
+                <label class="form-label" for="{{ field.id_for_label }}">
+                    {{ field.label }}
+                    {% if field.field.required %}
+                    <span style="color:var(--danger);">*</span>
+                    {% endif %}
+                </label>
+                
+                {% if field.field.widget.input_type == 'select' %}
+                    {{ field }}
+                {% elif field.field.widget.input_type == 'checkbox' %}
+                    {{ field }}
+                {% elif field.field.widget.input_type == 'textarea' %}
+                    {{ field }}
+                {% else %}
+                    {{ field }}
+                {% endif %}
+                
+                {% if field.errors %}
+                    {% for error in field.errors %}
+                    <div class="invalid-feedback">
+                        <i data-lucide="alert-circle" style="width:12px;height:12px;"></i>
+                        {{ error }}
+                    </div>
+                    {% endfor %}
+                {% endif %}
+                
+                {% if field.help_text %}
+                <div style="font-size:12px;color:var(--text-3);margin-top:6px;">
+                    {{ field.help_text }}
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+        
+        <div class="form-actions">
+            {% if cancel_url %}
+            <a href="{{ cancel_url }}" class="btn btn-secondary">Cancel</a>
+            {% endif %}
+            <button type="submit" class="btn btn-primary">
+                <i data-lucide="check"></i> {{ submit_label|default:'Save' }}
+            </button>
+        </div>
+    </form>
+</div>

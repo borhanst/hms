@@ -1,0 +1,110 @@
+{% comment %}
+Data Table Component
+Usage:
+  {% include 'components/data_table.html' with 
+      columns=table_columns
+      objects=page_obj
+      row_url_name='patients:patient_detail'
+      actions=True
+      edit_url_name='patients:patient_edit'
+      delete_url_name='patients:patient_delete'
+      empty_icon="users"
+      empty_title="No patients found"
+      empty_subtitle="Register a patient to get started."
+  %}
+
+Columns format (in view or template):
+  columns = [
+      {'label': 'Name', 'field': 'full_name', 'link': True},
+      {'label': 'Gender', 'field': 'get_gender_display'},
+      {'label': 'Phone', 'field': 'phone'},
+      {'label': 'Blood', 'field': 'blood_group', 'badge': True, 'badge_class': 'badge-danger'},
+  ]
+{% endcomment %}
+
+{% if objects %}
+<div class="table-container" id="{{ table_id|default:'table-container' }}">
+    <table role="grid">
+        <thead>
+            <tr>
+                {% for column in columns %}
+                <th>{{ column.label }}</th>
+                {% endfor %}
+                {% if actions %}
+                <th>Actions</th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for object in objects %}
+            <tr>
+                {% for column in columns %}
+                <td>
+                    {% if column.link %}
+                    <a href="{% if row_url_name %}{% url row_url_name object.pk %}{% else %}#{% endif %}">
+                        {{ object|getattribute:column.field }}
+                    </a>
+                    {% elif column.badge %}
+                    <span class="badge {{ column.badge_class|default:'badge-neutral' }}">
+                        {{ object|getattribute:column.field|default:"—" }}
+                    </span>
+                    {% elif column.icon %}
+                    <i data-lucide="{{ column.icon }}" style="width:16px;height:16px;"></i>
+                    {{ object|getattribute:column.field }}
+                    {% else %}
+                    {{ object|getattribute:column.field|default:"—" }}
+                    {% endif %}
+                </td>
+                {% endfor %}
+                
+                {% if actions %}
+                <td>
+                    <div class="table-actions">
+                        {% if row_url_name %}
+                        <a href="{% url row_url_name object.pk %}" 
+                           class="btn-icon" 
+                           title="View details"
+                           aria-label="View {{ object|getattribute:'full_name'|default:'details' }}">
+                            <i data-lucide="eye" style="width:16px;height:16px;"></i>
+                        </a>
+                        {% endif %}
+                        
+                        {% if edit_url_name %}
+                        <a href="{% url edit_url_name object.pk %}" 
+                           class="btn-icon" 
+                           title="Edit"
+                           aria-label="Edit {{ object|getattribute:'full_name'|default:'item' }}">
+                            <i data-lucide="pencil" style="width:16px;height:16px;"></i>
+                        </a>
+                        {% endif %}
+                        
+                        {% if delete_url_name %}
+                        <button type="button"
+                                class="btn-icon btn-icon-danger"
+                                onclick="openModal('{{ delete_modal_id|default:'delete-modal' }}')"
+                                title="Delete"
+                                aria-label="Delete {{ object|getattribute:'full_name'|default:'item' }}"
+                                data-delete-url="{% url delete_url_name object.pk %}">
+                            <i data-lucide="trash-2" style="width:16px;height:16px;"></i>
+                        </button>
+                        {% endif %}
+                    </div>
+                </td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% include 'components/pagination.html' with page_obj=objects %}
+
+{% else %}
+{% include 'components/empty_state.html' with 
+    icon=empty_icon|default:'inbox'
+    title=empty_title|default:'No data found'
+    subtitle=empty_subtitle|default:'Add an item to get started.'
+    action_url=add_url
+    action_label=add_label
+%}
+{% endif %}

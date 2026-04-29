@@ -1,0 +1,54 @@
+{% comment %}
+Detail Card Component
+Usage:
+  {% include 'components/detail_card.html' with 
+      title="Patient Information"
+      icon="user"
+  %}
+    {% block detail_content %}
+    ...
+    {% endblock %}
+  {% endinclude %}
+
+Or simpler usage with fields:
+  {% include 'components/detail_card.html' with 
+      title="Patient Information"
+      icon="user"
+      fields=field_list
+  %}
+  where fields = [
+      {'label': 'Name', 'value': patient.name},
+      {'label': 'Phone', 'value': patient.phone},
+  ]
+{% endcomment %}
+
+<div class="detail-section">
+    {% if title %}
+    <div class="detail-section-title">
+        {% if icon %}
+        <i data-lucide="{{ icon }}" style="width:16px;height:16px;"></i>
+        {% endif %}
+        {{ title }}
+    </div>
+    {% endif %}
+    
+    {% if fields %}
+        {% for field in fields %}
+        <div class="detail-row">
+            <span class="detail-label">{{ field.label }}</span>
+            <span class="detail-value">
+                {% if field.link %}
+                <a href="{{ field.link }}" style="color:var(--accent);text-decoration:none;">
+                    {{ field.value }}
+                </a>
+                {% else %}
+                {{ field.value|default:"—" }}
+                {% endif %}
+            </span>
+        </div>
+        {% endfor %}
+    {% else %}
+        {% block detail_content %}
+        {% endblock %}
+    {% endif %}
+</div>

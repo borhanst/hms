@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Dispensing Records{% endblock %}
+{% block page_title %}Dispensing Records{% endblock %}
+{% block topbar_actions %}
+<a href="{% url 'pharmacy:dispensing_create' %}" class="btn btn-primary btn-sm">+ Dispense Medicine</a>
+{% endblock %}
+{% block content %}
+{% if records %}
+<div class="table-container">
+    <table>
+        <thead><tr><th>Medicine</th><th>Qty</th><th>Prescription</th><th>By</th><th>Notes</th><th>Date</th></tr></thead>
+        <tbody>
+            {% for r in records %}
+            <tr>
+                <td>{{ r.medicine.name }}</td>
+                <td>{{ r.quantity }}</td>
+                <td>{% if r.prescription %}<a href="{% url 'prescriptions:prescription_detail' r.prescription.pk %}">#{{ r.prescription.pk }}</a>{% else %}-{% endif %}</td>
+                <td>{{ r.dispensed_by|default:"-" }}</td>
+                <td>{{ r.notes|truncatewords:5|default:"-" }}</td>
+                <td>{{ r.dispensed_at|date:"M d, Y H:i" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% if page_obj.has_other_pages %}
+<div class="pagination">
+    {% if page_obj.has_previous %}<a href="?page=1" class="pagination-link">&laquo; First</a>
+    <a href="?page={{ page_obj.previous_page_number }}" class="pagination-link">Previous</a>{% endif %}
+    <span class="pagination-info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}" class="pagination-link">Next</a>
+    <a href="?page={{ page_obj.paginator.num_pages }}" class="pagination-link">Last &raquo;</a>{% endif %}
+</div>
+{% endif %}
+{% else %}
+<div class="empty-state"><div class="empty-state-icon"><i data-lucide="pill"></i></div><h3>No dispensing records</h3></div>
+{% endif %}
+{% endblock %}

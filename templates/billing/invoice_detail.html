@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Invoice {{ invoice.invoice_number }}{% endblock %}
+{% block page_title %}Invoice {{ invoice.invoice_number }}{% endblock %}
+{% block topbar_actions %}
+<a href="{% url 'billing:invoice_edit' invoice.pk %}" class="btn btn-primary btn-sm">Edit</a>
+<a href="{% url 'billing:invoice_print' invoice.pk %}" class="btn btn-success btn-sm"><i data-lucide="printer"></i> Print</a>
+<a href="{% url 'billing:invoice_delete' invoice.pk %}" class="btn btn-danger btn-sm">Delete</a>
+{% endblock %}
+{% block content %}
+<div class="detail-header">
+    <div>
+        <h1 class="detail-title">{{ invoice.patient.full_name }}</h1>
+        <div class="detail-meta">
+            <span class="detail-meta-item"><i data-lucide="calendar" style="width:14px;height:14px;"></i> {{ invoice.date|date:"M d, Y" }}</span>
+            {% if invoice.status == 'PAID' %}<span class="badge badge-success">Paid</span>
+            {% elif invoice.status == 'SENT' %}<span class="badge badge-info">Sent</span>
+            {% elif invoice.status == 'DRAFT' %}<span class="badge badge-neutral">Draft</span>
+            {% elif invoice.status == 'OVERDUE' %}<span class="badge badge-danger">Overdue</span>
+            {% else %}<span class="badge badge-neutral">Cancelled</span>{% endif %}
+        </div>
+    </div>
+</div>
+<div class="detail-grid">
+    <div class="card">
+        <div class="card-header"><h3 class="card-title">Invoice Details</h3></div>
+        <div class="detail-field"><div class="detail-field-label">Doctor</div><div class="detail-field-value">{% if invoice.doctor %}Dr. {{ invoice.doctor.user.get_full_name }}{% else %}-{% endif %}</div></div>
+        <div class="detail-field"><div class="detail-field-label">Due Date</div><div class="detail-field-value">{{ invoice.due_date|date:"M d, Y"|default:"-" }}</div></div>
+        {% if invoice.payment_method %}<div class="detail-field"><div class="detail-field-label">Payment Method</div><div class="detail-field-value">{{ invoice.get_payment_method_display }}</div></div>{% endif %}
+        {% if invoice.notes %}<div class="detail-field"><div class="detail-field-label">Notes</div><div class="detail-field-value">{{ invoice.notes }}</div></div>{% endif %}
+    </div>
+    <div class="card">
+        <div class="card-header"><h3 class="card-title">Summary</h3></div>
+        <div class="detail-field"><div class="detail-field-label">Subtotal</div><div class="detail-field-value">৳{{ invoice.subtotal }}</div></div>
+        {% if invoice.discount %}<div class="detail-field"><div class="detail-field-label">Discount</div><div class="detail-field-value">-৳{{ invoice.discount }}</div></div>{% endif %}
+        {% if invoice.tax %}<div class="detail-field"><div class="detail-field-label">Tax</div><div class="detail-field-value">+৳{{ invoice.tax }}</div></div>{% endif %}
+        <div class="detail-field"><div class="detail-field-label" style="font-size:16px;font-weight:700;">Total</div><div class="detail-field-value" style="font-size:20px;font-weight:800;color:var(--accent);">৳{{ invoice.total }}</div></div>
+    </div>
+</div>
+{% if invoice.items.exists %}
+<div class="card" style="margin-top:24px;">
+    <div class="card-header"><h3 class="card-title">Line Items</h3></div>
+    <div class="table-container">
+        <table>
+            <thead><tr><th>#</th><th>Description</th><th>Qty</th><th>Unit Price</th><th>Total</th></tr></thead>
+            <tbody>
+                {% for item in invoice.items.all %}
+                <tr><td>{{ forloop.counter }}</td><td>{{ item.description }}</td><td>{{ item.quantity }}</td><td>৳{{ item.unit_price }}</td><td>৳{{ item.total }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+<div style="margin-top:24px;"><a href="{% url 'billing:invoice_list' %}" class="btn btn-secondary">← Back to Invoices</a></div>
+{% endblock %}

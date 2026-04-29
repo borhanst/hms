@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Invoices{% endblock %}
+{% block page_title %}Invoices{% endblock %}
+{% block topbar_actions %}
+<a href="{% url 'billing:invoice_create' %}" class="btn btn-primary btn-sm">+ New Invoice</a>
+{% endblock %}
+{% block content %}
+<div class="toolbar">
+    <div class="search-box">
+        <input type="text" name="search" placeholder="Search invoice # or patient..."
+               value="{{ search }}"
+               hx-get="{% url 'billing:invoice_list' %}"
+               hx-trigger="keyup changed delay:300ms"
+               hx-target="#invoice-table"
+               hx-include="[name='status']">
+    </div>
+    <select name="status" class="filter-select"
+            hx-get="{% url 'billing:invoice_list' %}"
+            hx-trigger="change"
+            hx-target="#invoice-table"
+            hx-include="[name='search']">
+        <option value="">All Status</option>
+        {% for val, label in status_choices %}
+        <option value="{{ val }}" {% if status == val %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+    </select>
+</div>
+<div id="invoice-table">
+    {% include "billing/partials/invoice_table.html" %}
+</div>
+{% endblock %}

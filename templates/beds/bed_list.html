@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Beds{% endblock %}{% block page_title %}Beds{% endblock %}
+{% block topbar_actions %}<a href="{% url 'beds:bed_create' %}" class="btn btn-primary btn-sm">+ Add Bed</a>{% endblock %}
+{% block content %}
+<div class="toolbar">
+    <select name="ward" class="filter-select" hx-get="{% url 'beds:bed_list' %}" hx-trigger="change" hx-target="#bed-table">
+        <option value="">All Wards</option>
+        {% for w in wards %}<option value="{{ w.pk }}" {% if request.GET.ward == w.pk|stringformat:"s" %}selected{% endif %}>{{ w.name }}</option>{% endfor %}
+    </select>
+    <select name="status" class="filter-select" hx-get="{% url 'beds:bed_list' %}" hx-trigger="change" hx-target="#bed-table">
+        <option value="">All Status</option>
+        {% for val, label in status_choices %}<option value="{{ val }}" {% if request.GET.status == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select>
+</div>
+<div id="bed-table">
+{% if beds %}
+<div class="table-container">
+    <table>
+        <thead><tr><th>Bed #</th><th>Ward</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>
+            {% for b in beds %}
+            <tr><td>{{ b.bed_number }}</td><td>{{ b.ward.name }}</td>
+            <td>{% if b.status == 'AVAILABLE' %}<span class="badge badge-success">Available</span>{% elif b.status == 'OCCUPIED' %}<span class="badge badge-danger">Occupied</span>{% else %}<span class="badge badge-neutral">Maintenance</span>{% endif %}</td>
+            <td style="display:flex;gap:6px;"><a href="{% url 'beds:bed_edit' b.pk %}" class="btn btn-secondary btn-sm">Edit</a></td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}<div class="empty-state"><h3>No beds found</h3></div>{% endif %}
+</div>
+{% endblock %}

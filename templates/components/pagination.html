@@ -1,0 +1,26 @@
+{% comment %}
+Pagination Component
+Usage:
+  {% include 'components/pagination.html' with 
+      page_obj=page_obj 
+      search_params="search="|add:search|add:"&blood_group="|add:blood_group
+  %}
+{% endcomment %}
+
+{% if page_obj.has_other_pages %}
+<div class="pagination">
+    {% if page_obj.has_previous %}
+        <a href="?page=1&{{ search_params }}" class="pagination-link">&laquo; First</a>
+        <a href="?page={{ page_obj.previous_page_number }}&{{ search_params }}" class="pagination-link">Previous</a>
+    {% endif %}
+    
+    <span class="pagination-info">
+        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+    </span>
+    
+    {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&{{ search_params }}" class="pagination-link">Next</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}&{{ search_params }}" class="pagination-link">Last &raquo;</a>
+    {% endif %}
+</div>
+{% endif %}

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Sale #{{ sale.pk }}{% endblock %}
+{% block page_title %}Sale #{{ sale.pk }}{% endblock %}
+{% block topbar_actions %}
+{% if sale.invoice %}<a href="{% url 'billing:invoice_detail' sale.invoice.pk %}" class="btn btn-primary btn-sm">Open Invoice</a>{% endif %}
+{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header"><h3 class="card-title">{{ sale.patient.full_name }}</h3><span class="badge">{{ sale.get_status_display }}</span></div>
+    <p>Date: {{ sale.sale_date|date:"M d, Y H:i" }} | Subtotal: ৳{{ sale.subtotal }} | Discount: ৳{{ sale.discount }} | Tax: ৳{{ sale.tax }} | Total: ৳{{ sale.total }}</p>
+    {% if sale.notes %}<p>{{ sale.notes }}</p>{% endif %}
+    <div class="table-container">
+        <table>
+            <thead><tr><th>Medicine</th><th>Qty</th><th>Unit Price</th><th>Total</th></tr></thead>
+            <tbody>{% for item in sale.items.all %}<tr><td>{{ item.medicine.name }}</td><td>{{ item.quantity }}</td><td>৳{{ item.unit_price }}</td><td>৳{{ item.total }}</td></tr>{% endfor %}</tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

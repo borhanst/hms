@@ -1,0 +1,24 @@
+{% comment %}
+Empty State Component
+Usage:
+  {% include 'components/empty_state.html' with 
+      icon="users"
+      title="No patients found"
+      subtitle="Register a patient to get started."
+      action_url="#"
+      action_label="Add Patient"
+  %}
+{% endcomment %}
+
+<div class="empty-state">
+    <div class="empty-state-icon">
+        <i data-lucide="{{ icon|default:'inbox' }}"></i>
+    </div>
+    <h3>{{ title|default:'No data found' }}</h3>
+    <p>{{ subtitle }}</p>
+    {% if action_url %}
+    <a href="{{ action_url }}" class="btn btn-primary" style="margin-top:16px;">
+        <i data-lucide="plus"></i> {{ action_label }}
+    </a>
+    {% endif %}
+</div>

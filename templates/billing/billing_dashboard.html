@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Billing Dashboard{% endblock %}
+{% block page_title %}Billing Dashboard{% endblock %}
+{% block topbar_actions %}
+<a href="{% url 'billing:invoice_create' %}" class="btn btn-primary btn-sm">+ New Invoice</a>
+<a href="{% url 'billing:invoice_list' %}" class="btn btn-secondary btn-sm">View Invoices</a>
+{% endblock %}
+{% block content %}
+<div class="stats-grid">
+    <div class="stat-card green"><div class="stat-icon"><i data-lucide="banknote"></i></div><div class="stat-value">৳{{ total_revenue|floatformat:0 }}</div><div class="stat-label">Total Revenue (Paid)</div></div>
+    <div class="stat-card amber"><div class="stat-icon">⏳</div><div class="stat-value">৳{{ pending_revenue|floatformat:0 }}</div><div class="stat-label">Pending Revenue</div></div>
+    <div class="stat-card cyan"><div class="stat-icon">📄</div><div class="stat-value">{{ total_invoices }}</div><div class="stat-label">Total Invoices</div></div>
+    <div class="stat-card purple"><div class="stat-icon"><i data-lucide="check-circle"></i></div><div class="stat-value">{{ paid_invoices }}</div><div class="stat-label">Paid Invoices</div></div>
+    {% if overdue_invoices > 0 %}
+    <div class="stat-card red"><div class="stat-icon"><i data-lucide="alert-triangle"></i></div><div class="stat-value">{{ overdue_invoices }}</div><div class="stat-label">Overdue</div></div>
+    {% endif %}
+</div>
+<div class="detail-grid" style="margin:24px 0;">
+    <div class="card">
+        <div class="card-header"><h3 class="card-title">Revenue Trend (Last 6 Months)</h3></div>
+        <div style="padding:16px;"><canvas id="revenueChart"></canvas></div>
+    </div>
+    <div class="card">
+        <div class="card-header"><h3 class="card-title">Payment Methods</h3></div>
+        <div style="padding:16px;"><canvas id="paymentChart"></canvas></div>
+    </div>
+</div>
+<div class="card">
+    <div class="card-header"><h3 class="card-title">Recent Invoices</h3></div>
+    {% if recent_invoices %}
+    <div class="table-container">
+        <table>
+            <thead><tr><th>Invoice #</th><th>Patient</th><th>Total</th><th>Status</th><th>Date</th></tr></thead>
+            <tbody>
+                {% for inv in recent_invoices %}
+                <tr>
+                    <td><a href="{% url 'billing:invoice_detail' inv.pk %}">{{ inv.invoice_number }}</a></td>
+                    <td>{{ inv.patient.full_name }}</td>
+                    <td>৳{{ inv.total }}</td>
+                    <td>
+                        {% if inv.status == 'PAID' %}<span class="badge badge-success">Paid</span>
+                        {% elif inv.status == 'SENT' %}<span class="badge badge-info">Sent</span>
+                        {% elif inv.status == 'DRAFT' %}<span class="badge badge-neutral">Draft</span>
+                        {% elif inv.status == 'OVERDUE' %}<span class="badge badge-danger">Overdue</span>
+                        {% else %}<span class="badge badge-neutral">Cancelled</span>{% endif %}
+                    </td>
+                    <td>{{ inv.date|date:"M d, Y" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}<div class="empty-state"><p>No invoices yet.</p></div>{% endif %}
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const colors = { cyan: '#06b6d4', green: '#10b981', purple: '#8b5cf6', amber: '#f59e0b', red: '#ef4444', blue: '#3b82f6' };
+    {% if revenue_by_month_json %}
+    const revData = {{ revenue_by_month_json|safe }};
+    new Chart(document.getElementById('revenueChart'), {
+        type: 'bar',
+        data: {
+            labels: revData.map(d => new Date(d.month).toLocaleDateString('en-US', {month:'short', year:'numeric'})),
+            datasets: [{ label: 'Revenue (৳)', data: revData.map(d => d.total), backgroundColor: colors.cyan }]
+        },
+        options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { color: '#94a3b8' } }, x: { ticks: { color: '#94a3b8' } } } }
+    });
+    {% endif %}
+    {% if payment_method_json %}
+    const payData = {{ payment_method_json|safe }};
+    new Chart(document.getElementById('paymentChart'), {
+        type: 'doughnut',
+        data: { labels: payData.map(d => d.payment_method), datasets: [{ data: payData.map(d => d.count), backgroundColor: [colors.cyan, colors.green, colors.purple, colors.amber, colors.red] }] },
+        options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8' } } } }
+    });
+    {% endif %}
+});
+</script>
+{% endblock %}

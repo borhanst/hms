@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Purchase #{{ purchase.pk }}{% endblock %}
+{% block page_title %}Purchase #{{ purchase.pk }}{% endblock %}
+{% block topbar_actions %}
+{% if purchase.status == "DRAFT" %}
+<form method="post" action="{% url 'pharmacy:purchase_complete' purchase.pk %}">{% csrf_token %}<button class="btn btn-success btn-sm">Complete Purchase</button></form>
+{% endif %}
+{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header"><h3 class="card-title">{{ purchase.supplier.name }}</h3><span class="badge">{{ purchase.get_status_display }}</span></div>
+    <p>Reference: {{ purchase.reference_number|default:"-" }} | Date: {{ purchase.purchase_date|date:"M d, Y" }} | Total: ৳{{ purchase.total }}</p>
+    {% if purchase.notes %}<p>{{ purchase.notes }}</p>{% endif %}
+    <div class="table-container">
+        <table>
+            <thead><tr><th>Medicine</th><th>Qty</th><th>Unit Cost</th><th>Total</th></tr></thead>
+            <tbody>{% for item in purchase.items.all %}<tr><td>{{ item.medicine.name }}</td><td>{{ item.quantity }}</td><td>৳{{ item.unit_cost }}</td><td>৳{{ item.total }}</td></tr>{% endfor %}</tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

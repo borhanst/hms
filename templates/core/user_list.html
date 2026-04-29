@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Users{% endblock %}
+{% block page_title %}User Management{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'core:user_create' %}" class="btn btn-primary btn-sm">+ New User</a>
+{% endblock %}
+
+{% block content %}
+<div class="toolbar">
+    <div class="search-box">
+        <input type="text" name="search" placeholder="Search users..."
+               value="{{ search }}"
+               hx-get="{% url 'core:user_list' %}"
+               hx-trigger="keyup changed delay:300ms"
+               hx-target="#user-table"
+               hx-include="this">
+    </div>
+</div>
+
+<div id="user-table">
+    {% include "core/partials/user_table.html" %}
+</div>
+{% endblock %}

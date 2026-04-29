@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}HR Dashboard{% endblock %}{% block page_title %}HR Dashboard{% endblock %}
+{% block topbar_actions %}
+<a href="{% url 'hr:employee_create' %}" class="btn btn-primary btn-sm">+ Add Employee</a>
+<a href="{% url 'hr:attendance_create' %}" class="btn btn-success btn-sm"><i data-lucide="clipboard-list"></i> Record Attendance</a>
+{% endblock %}
+{% block content %}
+<div class="stats-grid">
+    <div class="stat-card cyan"><div class="stat-icon"><i data-lucide="users"></i></div><div class="stat-value">{{ total_employees }}</div><div class="stat-label">Total Employees</div></div>
+    <div class="stat-card green"><div class="stat-icon"><i data-lucide="check-circle"></i></div><div class="stat-value">{{ today_present }}</div><div class="stat-label">Present Today</div></div>
+    {% if today_absent > 0 %}<div class="stat-card red"><div class="stat-icon"><i data-lucide="x-circle"></i></div><div class="stat-value">{{ today_absent }}</div><div class="stat-label">Absent Today</div></div>{% endif %}
+    {% if pending_leaves > 0 %}<div class="stat-card amber"><div class="stat-icon">📝</div><div class="stat-value">{{ pending_leaves }}</div><div class="stat-label">Pending Leaves</div></div>{% endif %}
+</div>
+<div class="card" style="margin-top:24px;">
+    <div class="card-header"><h3 class="card-title">Recent Leave Requests</h3><a href="{% url 'hr:leave_list' %}" class="btn btn-secondary btn-sm">View All</a></div>
+    {% if recent_leaves %}
+    <div class="table-container"><table>
+        <thead><tr><th>Employee</th><th>Type</th><th>From</th><th>To</th><th>Days</th><th>Status</th>{% if user.is_admin %}<th>Action</th>{% endif %}</tr></thead>
+        <tbody>{% for l in recent_leaves %}<tr>
+            <td>{{ l.employee.get_full_name }}</td><td>{{ l.get_leave_type_display }}</td>
+            <td>{{ l.start_date|date:"M d" }}</td><td>{{ l.end_date|date:"M d, Y" }}</td><td>{{ l.days }}</td>
+            <td>{% if l.status == 'APPROVED' %}<span class="badge badge-success">Approved</span>{% elif l.status == 'REJECTED' %}<span class="badge badge-danger">Rejected</span>{% else %}<span class="badge badge-warning">Pending</span>{% endif %}</td>
+            {% if user.is_admin and l.status == 'PENDING' %}<td><a href="{% url 'hr:leave_review' l.pk %}" class="btn btn-secondary btn-sm">Review</a></td>{% endif %}
+        </tr>{% endfor %}</tbody>
+    </table></div>
+    {% else %}<div class="empty-state"><p>No leave requests.</p></div>{% endif %}
+</div>
+{% endblock %}

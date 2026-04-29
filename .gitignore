@@ -1,0 +1,53 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+*.pyo
+build/
+dist/
+wheels/
+*.egg-info
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+
+# Virtual environments
+.venv
+.venv/
+venv/
+env/
+
+# Django/runtime local state
+*.sqlite3
+db.sqlite3
+media/
+staticfiles/
+celerybeat-schedule
+*.sqlite3-journal
+
+# Logs and local environment
+*.log
+.env
+.env.*
+!.env.example
+.DS_Store
+.idea/
+.vscode/
+
+# Node/Remotion generated files
+node_modules/
+.npm/
+.cache/
+out/
+*.mp4
+*.webm
+
+# Downloaded/generated medicine datasets
+medicein-dataset/*.csv
+medicein-dataset/*.zip
+data/
+
+# Local assistant/tooling state
+.qwen/
+.agents/

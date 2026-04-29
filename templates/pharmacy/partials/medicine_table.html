@@ -1,0 +1,53 @@
+{% if medicines %}
+<div class="table-container">
+    <table>
+        <thead><tr><th>Name</th><th>Generic</th><th>Category</th><th>Stock</th><th>Expiry</th><th>Price</th><th>Actions</th></tr></thead>
+        <tbody>
+            {% for med in medicines %}
+            <tr>
+                <td><strong>{{ med.name }}</strong></td>
+                <td>{{ med.generic_name|default:"-" }}</td>
+                <td><span class="badge badge-info">{{ med.get_category_display }}</span></td>
+                <td>{% if med.is_low_stock %}<span class="badge badge-danger">{{ med.stock }}</span>{% else %}{{ med.stock }}{% endif %}</td>
+                <td>
+                    {% if med.is_expired %}
+                        <span class="badge badge-danger">Expired {{ med.expiry_date|date:"M d, Y" }}</span>
+                    {% elif med.is_near_expiry %}
+                        <span class="badge badge-warning">{{ med.days_until_expiry }} days</span>
+                    {% elif med.expiry_date %}
+                        <span class="badge badge-success">{{ med.expiry_date|date:"M d, Y" }}</span>
+                    {% else %}
+                        <span class="badge">No date</span>
+                    {% endif %}
+                </td>
+                <td>৳{{ med.unit_price }}</td>
+                <td style="display:flex;gap:6px;">
+                    <a href="{% url 'pharmacy:medicine_edit' med.pk %}" class="btn btn-secondary btn-sm">Edit</a>
+                    {% if med.is_expired and med.stock > 0 %}
+                    <form method="post" action="{% url 'pharmacy:medicine_dispose_expired' med.pk %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-sm">Dispose</button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% if page_obj.has_other_pages %}
+<div class="pagination">
+    {% if page_obj.has_previous %}
+        <a href="?page=1&search={{ search }}&category={{ category }}&expiry_status={{ expiry_status }}" class="pagination-link">&laquo; First</a>
+        <a href="?page={{ page_obj.previous_page_number }}&search={{ search }}&category={{ category }}&expiry_status={{ expiry_status }}" class="pagination-link">Previous</a>
+    {% endif %}
+    <span class="pagination-info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&search={{ search }}&category={{ category }}&expiry_status={{ expiry_status }}" class="pagination-link">Next</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}&search={{ search }}&category={{ category }}&expiry_status={{ expiry_status }}" class="pagination-link">Last &raquo;</a>
+    {% endif %}
+</div>
+{% endif %}
+{% else %}
+<div class="empty-state"><div class="empty-state-icon"><i data-lucide="pill"></i></div><h3>No medicines found</h3></div>
+{% endif %}

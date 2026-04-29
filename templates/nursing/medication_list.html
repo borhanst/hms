@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Medication Administration{% endblock %}{% block page_title %}Medication Administration{% endblock %}
+{% block topbar_actions %}<a href="{% url 'nursing:medication_create' %}" class="btn btn-primary btn-sm">+ Record Medication</a>{% endblock %}
+{% block content %}
+{% if records %}
+<div class="table-container"><table>
+    <thead><tr><th>Medicine</th><th>Dosage</th><th>Patient</th><th>Route</th><th>Nurse</th><th>Time</th></tr></thead>
+    <tbody>{% for r in records %}<tr>
+        <td>{{ r.medicine_name }}</td><td>{{ r.dosage }}</td><td>{{ r.patient.full_name }}</td>
+        <td>{{ r.get_route_display }}</td><td>{{ r.nurse.get_full_name|default:"-" }}</td>
+        <td>{{ r.administered_at|date:"M d, H:i" }}</td>
+    </tr>{% endfor %}</tbody>
+</table></div>
+{% if page_obj.has_other_pages %}<div class="pagination">
+    {% if page_obj.has_previous %}<a href="?page=1" class="pagination-link">&laquo; First</a><a href="?page={{ page_obj.previous_page_number }}" class="pagination-link">Previous</a>{% endif %}
+    <span class="pagination-info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}" class="pagination-link">Next</a><a href="?page={{ page_obj.paginator.num_pages }}" class="pagination-link">Last &raquo;</a>{% endif %}
+</div>{% endif %}
+{% else %}<div class="empty-state"><h3>No medication records</h3></div>{% endif %}
+{% endblock %}

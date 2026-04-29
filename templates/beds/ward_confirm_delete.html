@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Delete Ward{% endblock %}{% block page_title %}Delete Ward{% endblock %}
+{% block content %}
+<div class="card" style="max-width:600px;margin:0 auto;">
+    <div class="card-header"><h3 class="card-title">Confirm Deletion</h3></div>
+    <p style="padding:0 24px 16px;">Delete ward <strong>{{ object.name }}</strong>?</p>
+    <form method="post" style="padding:0 24px 24px;display:flex;gap:12px;">{% csrf_token %}
+        <button type="submit" class="btn btn-danger">Delete</button><a href="{% url 'beds:ward_list' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

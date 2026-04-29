@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Leave Requests{% endblock %}{% block page_title %}Leave Requests{% endblock %}
+{% block topbar_actions %}<a href="{% url 'hr:leave_create' %}" class="btn btn-primary btn-sm">+ Request Leave</a>{% endblock %}
+{% block content %}
+<div class="toolbar">
+    <select name="status" class="filter-select" hx-get="{% url 'hr:leave_list' %}" hx-trigger="change" hx-target="#leave-table">
+        <option value="">All Status</option>
+        {% for val, label in status_choices %}<option value="{{ val }}" {% if request.GET.status == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select>
+</div>
+<div id="leave-table">
+{% if leaves %}
+<div class="table-container"><table>
+    <thead><tr><th>Employee</th><th>Type</th><th>From</th><th>To</th><th>Days</th><th>Status</th>{% if user.is_admin %}<th>Action</th>{% endif %}</tr></thead>
+    <tbody>{% for l in leaves %}<tr>
+        <td>{{ l.employee.get_full_name }}</td><td>{{ l.get_leave_type_display }}</td>
+        <td>{{ l.start_date|date:"M d" }}</td><td>{{ l.end_date|date:"M d, Y" }}</td><td>{{ l.days }}</td>
+        <td>{% if l.status == 'APPROVED' %}<span class="badge badge-success">Approved</span>{% elif l.status == 'REJECTED' %}<span class="badge badge-danger">Rejected</span>{% else %}<span class="badge badge-warning">Pending</span>{% endif %}</td>
+        {% if user.is_admin and l.status == 'PENDING' %}<td><a href="{% url 'hr:leave_review' l.pk %}" class="btn btn-secondary btn-sm">Review</a></td>{% endif %}
+    </tr>{% endfor %}</tbody>
+</table></div>
+{% if page_obj.has_other_pages %}<div class="pagination">
+    {% if page_obj.has_previous %}<a href="?page=1" class="pagination-link">&laquo; First</a><a href="?page={{ page_obj.previous_page_number }}" class="pagination-link">Previous</a>{% endif %}
+    <span class="pagination-info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}" class="pagination-link">Next</a><a href="?page={{ page_obj.paginator.num_pages }}" class="pagination-link">Last &raquo;</a>{% endif %}
+</div>{% endif %}
+{% else %}<div class="empty-state"><h3>No leave requests</h3></div>{% endif %}
+</div>
+{% endblock %}

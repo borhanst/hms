@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}Delete Appointment{% endblock %}
+{% block page_title %}Delete Appointment{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:600px;margin:0 auto;">
+    <div class="card-header"><h3 class="card-title">Confirm Deletion</h3></div>
+    <p style="padding:0 24px 16px;">
+        Are you sure you want to delete the appointment for <strong>{{ object.patient.full_name }}</strong>
+        with <strong>Dr. {{ object.doctor.user.get_full_name }}</strong> on
+        <strong>{{ object.date|date:"M d, Y" }} at {{ object.start_time|time:"g:i A" }}</strong>?
+    </p>
+    <form method="post" style="padding:0 24px 24px;display:flex;gap:12px;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Delete</button>
+        <a href="{% url 'appointments:appointment_detail' object.pk %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

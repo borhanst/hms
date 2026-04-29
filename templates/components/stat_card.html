@@ -1,0 +1,35 @@
+{% comment %}
+Stat Card Component
+Usage:
+  {% include 'components/stat_card.html' with 
+      title="Total Patients" 
+      value=patient_count 
+      icon="users" 
+      color="cyan" 
+      trend="+12%"
+      href="#"
+  %}
+
+Color variants: cyan, green, purple, amber, red, blue
+{% endcomment %}
+
+<div class="stat-card {{ color|default:'cyan' }}">
+    <div class="stat-icon">
+        <i data-lucide="{{ icon|default:'circle' }}"></i>
+    </div>
+    <div class="stat-body">
+        {% if href %}
+        <a href="{{ href }}" class="stat-link">
+            <div class="stat-value tabular">{{ value|default:"0" }}</div>
+        </a>
+        {% else %}
+        <div class="stat-value tabular">{{ value|default:"0" }}</div>
+        {% endif %}
+        <div class="stat-label">{{ title }}</div>
+        {% if trend %}
+        <div class="stat-trend {% if trend|slice:':1' == '+' %}positive{% else %}negative{% endif %}">
+            {{ trend }}
+        </div>
+        {% endif %}
+    </div>
+</div>

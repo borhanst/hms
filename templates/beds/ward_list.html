@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Wards{% endblock %}{% block page_title %}Wards{% endblock %}
+{% block topbar_actions %}<a href="{% url 'beds:ward_create' %}" class="btn btn-primary btn-sm">+ Add Ward</a>{% endblock %}
+{% block content %}
+{% if wards %}
+<div class="table-container">
+    <table>
+        <thead><tr><th>Name</th><th>Type</th><th>Beds</th><th>Price/Day</th><th>Actions</th></tr></thead>
+        <tbody>
+            {% for w in wards %}
+            <tr><td>{{ w.name }}</td><td>{{ w.get_ward_type_display }}</td><td>{{ w.bed_count }}</td><td>৳{{ w.price_per_day }}</td>
+            <td style="display:flex;gap:6px;"><a href="{% url 'beds:ward_edit' w.pk %}" class="btn btn-secondary btn-sm">Edit</a><a href="{% url 'beds:ward_delete' w.pk %}" class="btn btn-danger btn-sm">Delete</a></td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}<div class="empty-state"><h3>No wards</h3></div>{% endif %}
+{% endblock %}

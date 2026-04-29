@@ -1,0 +1,58 @@
+{% if reports %}
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>Test Name</th>
+                <th>Patient</th>
+                <th>Doctor</th>
+                <th>Category</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for report in reports %}
+            <tr>
+                <td><a href="{% url 'reports:report_detail' report.pk %}">{{ report.test_name }}</a></td>
+                <td>{{ report.patient.full_name }}</td>
+                <td>{% if report.doctor %}Dr. {{ report.doctor.user.get_full_name }}{% else %}-{% endif %}</td>
+                <td><span class="badge badge-info">{{ report.get_test_category_display }}</span></td>
+                <td>
+                    {% if report.status == 'COMPLETED' %}<span class="badge badge-success">Completed</span>
+                    {% elif report.status == 'IN_PROGRESS' %}<span class="badge badge-warning">In Progress</span>
+                    {% else %}<span class="badge badge-neutral">Pending</span>{% endif %}
+                </td>
+                <td>{{ report.created_at|date:"M d, Y" }}</td>
+                <td style="display:flex;gap:6px;">
+                    <a href="{% url 'reports:report_detail' report.pk %}" class="btn btn-secondary btn-sm">View</a>
+                    {% if not user.is_receptionist %}
+                    <a href="{% url 'reports:report_edit' report.pk %}" class="btn btn-secondary btn-sm">Edit</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% if page_obj.has_other_pages %}
+<div class="pagination">
+    {% if page_obj.has_previous %}
+        <a href="?page=1&search={{ search }}&status={{ status }}&category={{ category }}" class="pagination-link">&laquo; First</a>
+        <a href="?page={{ page_obj.previous_page_number }}&search={{ search }}&status={{ status }}&category={{ category }}" class="pagination-link">Previous</a>
+    {% endif %}
+    <span class="pagination-info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&search={{ search }}&status={{ status }}&category={{ category }}" class="pagination-link">Next</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}&search={{ search }}&status={{ status }}&category={{ category }}" class="pagination-link">Last &raquo;</a>
+    {% endif %}
+</div>
+{% endif %}
+{% else %}
+<div class="empty-state">
+    <div class="empty-state-icon"><i data-lucide="clipboard-list"></i></div>
+    <h3>No reports found</h3>
+    <p>Create a diagnostic report to get started.</p>
+</div>
+{% endif %}

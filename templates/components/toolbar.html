@@ -1,0 +1,55 @@
+{% comment %}
+Toolbar Component - Search + Filter + Actions
+Usage:
+  {% include 'components/toolbar.html' with 
+      search_placeholder="Search..."
+      search_value=search_query
+      search_name="search"
+      filters=filters_list
+      add_url="#"
+      add_label="Add Item"
+      target_id="table-container"
+      include_fields="[name='filter1']"
+  %}
+{% endcomment %}
+
+<div class="toolbar">
+    {% if search_placeholder %}
+    <div class="search-box">
+        <i data-lucide="search" class="search-icon"></i>
+        <input type="text" 
+               name="{{ search_name|default:'search' }}" 
+               placeholder="{{ search_placeholder }}"
+               value="{{ search_value|default:'' }}"
+               hx-get="{{ request.path }}"
+               hx-trigger="keyup changed delay:300ms"
+               hx-target="#{{ target_id|default:'table-container' }}"
+               {% if include_fields %}hx-include="{{ include_fields }}"{% endif %}>
+    </div>
+    {% endif %}
+    
+    {% if filters %}
+        {% for filter in filters %}
+        <select name="{{ filter.name }}" 
+                class="filter-select"
+                hx-get="{{ request.path }}"
+                hx-trigger="change"
+                hx-target="#{{ target_id|default:'table-container' }}"
+                {% if include_fields %}hx-include="{{ include_fields }}"{% endif %}>
+            <option value="">{{ filter.label|default:'All' }}</option>
+            {% for option in filter.options %}
+            <option value="{{ option.value }}" 
+                    {% if filter.current == option.value %}selected{% endif %}>
+                {{ option.label }}
+            </option>
+            {% endfor %}
+        </select>
+        {% endfor %}
+    {% endif %}
+    
+    {% if add_url %}
+    <a href="{{ add_url }}" class="btn btn-primary btn-sm">
+        <i data-lucide="plus"></i> {{ add_label|default:'Add' }}
+    </a>
+    {% endif %}
+</div>

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Appointments{% endblock %}
+{% block page_title %}Appointments{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'appointments:appointment_create' %}" class="btn btn-primary btn-sm">+ New Appointment</a>
+<a href="{% url 'appointments:appointment_calendar' %}" class="btn btn-secondary btn-sm"><i data-lucide="calendar"></i> Calendar</a>
+{% endblock %}
+
+{% block content %}
+<div class="toolbar">
+    <div class="search-box">
+        <input type="text" name="search" placeholder="Search patients or doctors..."
+               value="{{ search }}"
+               hx-get="{% url 'appointments:appointment_list' %}"
+               hx-trigger="keyup changed delay:300ms"
+               hx-target="#appointment-table"
+               hx-include="[name='status'],[name='date']">
+    </div>
+    <select name="status" class="filter-select"
+            hx-get="{% url 'appointments:appointment_list' %}"
+            hx-trigger="change"
+            hx-target="#appointment-table"
+            hx-include="[name='search'],[name='date']">
+        <option value="">All Status</option>
+        {% for val, label in status_choices %}
+        <option value="{{ val }}" {% if status == val %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+    </select>
+    <input type="date" name="date" class="filter-select"
+           value="{{ appt_date }}"
+           hx-get="{% url 'appointments:appointment_list' %}"
+           hx-trigger="change"
+           hx-target="#appointment-table"
+           hx-include="[name='search'],[name='status']">
+</div>
+
+<div id="appointment-table">
+    {% include "appointments/partials/appointment_table.html" %}
+</div>
+{% endblock %}

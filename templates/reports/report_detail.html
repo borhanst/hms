@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}{{ report.test_name }}{% endblock %}
+{% block page_title %}Report Details{% endblock %}
+
+{% block topbar_actions %}
+{% if not user.is_receptionist %}
+<a href="{% url 'reports:report_edit' report.pk %}" class="btn btn-primary btn-sm">Edit</a>
+{% endif %}
+{% if user.is_admin or user.is_superuser %}
+<a href="{% url 'reports:report_delete' report.pk %}" class="btn btn-danger btn-sm">Delete</a>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="detail-header">
+    <div>
+        <h1 class="detail-title">{{ report.test_name }}</h1>
+        <div class="detail-meta">
+            <span class="badge badge-info">{{ report.get_test_category_display }}</span>
+            {% if report.status == 'COMPLETED' %}<span class="badge badge-success">Completed</span>
+            {% elif report.status == 'IN_PROGRESS' %}<span class="badge badge-warning">In Progress</span>
+            {% else %}<span class="badge badge-neutral">Pending</span>{% endif %}
+            <span class="detail-meta-item"><i data-lucide="calendar" style="width:14px;height:14px;"></i> {{ report.created_at|date:"M d, Y H:i" }}</span>
+        </div>
+    </div>
+</div>
+
+<div class="detail-grid">
+    <div class="card">
+        <div class="card-header"><h3 class="card-title">Test Information</h3></div>
+        <div class="detail-field">
+            <div class="detail-field-label">Patient</div>
+            <div class="detail-field-value"><a href="{% url 'patients:patient_detail' report.patient.pk %}">{{ report.patient.full_name }}</a></div>
+        </div>
+        <div class="detail-field">
+            <div class="detail-field-label">Doctor</div>
+            <div class="detail-field-value">
+                {% if report.doctor %}<a href="{% url 'doctors:doctor_detail' report.doctor.pk %}">Dr. {{ report.doctor.user.get_full_name }}</a>{% else %}-{% endif %}
+            </div>
+        </div>
+        <div class="detail-field">
+            <div class="detail-field-label">Category</div>
+            <div class="detail-field-value">{{ report.get_test_category_display }}</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><h3 class="card-title">Results</h3></div>
+        <div class="detail-field">
+            <div class="detail-field-label">Result</div>
+            <div class="detail-field-value" style="white-space:pre-wrap;">{{ report.result|default:"Results pending..." }}</div>
+        </div>
+        <div class="detail-field">
+            <div class="detail-field-label">Notes</div>
+            <div class="detail-field-value">{{ report.notes|default:"-" }}</div>
+        </div>
+        {% if report.file %}
+        <div class="detail-field">
+            <div class="detail-field-label">Attachment</div>
+            <div class="detail-field-value"><a href="{{ report.file.url }}" target="_blank" class="btn btn-secondary btn-sm">📎 Download File</a></div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div style="margin-top:24px;">
+    <a href="{% url 'reports:report_list' %}" class="btn btn-secondary">← Back to Reports</a>
+</div>
+{% endblock %}

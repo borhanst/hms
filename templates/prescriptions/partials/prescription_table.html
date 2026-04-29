@@ -1,0 +1,56 @@
+{% if prescriptions %}
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>Patient</th>
+                <th>Doctor</th>
+                <th>Diagnosis</th>
+                <th>Status</th>
+                <th>Follow-up</th>
+                <th>Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for rx in prescriptions %}
+            <tr>
+                <td><a href="{% url 'patients:patient_detail' rx.patient.pk %}">{{ rx.patient.full_name }}</a></td>
+                <td>{% if rx.doctor %}Dr. {{ rx.doctor.user.get_full_name }}{% else %}-{% endif %}</td>
+                <td>{{ rx.diagnosis|truncatewords:6 }}</td>
+                <td>
+                    {% if rx.status == 'ACTIVE' %}<span class="badge badge-success">Active</span>
+                    {% elif rx.status == 'COMPLETED' %}<span class="badge badge-info">Completed</span>
+                    {% else %}<span class="badge badge-danger">Discontinued</span>{% endif %}
+                </td>
+                <td>{{ rx.follow_up_date|date:"M d, Y"|default:"-" }}</td>
+                <td>{{ rx.created_at|date:"M d, Y" }}</td>
+                <td style="display:flex;gap:6px;">
+                    <a href="{% url 'prescriptions:prescription_detail' rx.pk %}" class="btn btn-secondary btn-sm">View</a>
+                    <a href="{% url 'prescriptions:prescription_print' rx.pk %}" class="btn btn-success btn-sm">Print</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% if page_obj.has_other_pages %}
+<div class="pagination">
+    {% if page_obj.has_previous %}
+        <a href="?page=1&search={{ search }}" class="pagination-link">&laquo; First</a>
+        <a href="?page={{ page_obj.previous_page_number }}&search={{ search }}" class="pagination-link">Previous</a>
+    {% endif %}
+    <span class="pagination-info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&search={{ search }}" class="pagination-link">Next</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}&search={{ search }}" class="pagination-link">Last &raquo;</a>
+    {% endif %}
+</div>
+{% endif %}
+{% else %}
+<div class="empty-state">
+    <div class="empty-state-icon"><i data-lucide="pill"></i></div>
+    <h3>No prescriptions found</h3>
+    <p>Create a prescription to get started.</p>
+</div>
+{% endif %}

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Delete Patient{% endblock %}
+{% block page_title %}Confirm Delete{% endblock %}
+
+{% block content %}
+<div class="card confirm-card">
+    <h2><i data-lucide="alert-triangle" style="width:20px;height:20px;color:var(--warning);"></i> Delete Patient</h2>
+    <p>Are you sure you want to delete <strong>{{ patient.full_name }}</strong>? All associated reports and prescriptions will also be deleted. This action cannot be undone.</p>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-actions">
+            <button type="submit" class="btn btn-danger">Yes, Delete</button>
+            <a href="{% url 'patients:patient_detail' patient.pk %}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
