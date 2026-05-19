@@ -7,6 +7,9 @@
 {% if not user.is_receptionist %}
 <a href="{% url 'prescriptions:prescription_edit' prescription.pk %}" class="btn btn-primary btn-sm">Edit</a>
 {% endif %}
+{% if can_create_pharmacy_sale %}
+<a href="{% url 'pharmacy:sale_create' %}?from_prescription={{ prescription.pk }}" class="btn btn-primary btn-sm"><i data-lucide="shopping-cart"></i> Create Invoice</a>
+{% endif %}
 <a href="{% url 'prescriptions:prescription_print' prescription.pk %}" class="btn btn-success btn-sm"><i data-lucide="printer"></i> Print</a>
 {% if user.is_admin or user.is_superuser %}
 <a href="{% url 'prescriptions:prescription_delete' prescription.pk %}" class="btn btn-danger btn-sm">Delete</a>

@@ -5,6 +5,7 @@ from django.core.paginator import Paginator
 from django.db.models import DecimalField, ExpressionWrapper, F, Q, Sum
 from django.utils import timezone
 from core.decorators import module_required
+from prescriptions.models import Prescription
 
 from .models import (
     DispensingRecord,
@@ -290,6 +291,14 @@ def sale_list(request):
 @login_required
 @module_required("pharmacy")
 def sale_create(request):
+    prescription = None
+    prescription_id = request.GET.get("from_prescription") or request.POST.get("prescription")
+    if prescription_id:
+        prescription = get_object_or_404(
+            Prescription.objects.select_related("patient", "doctor").prefetch_related("items__medicine"),
+            pk=prescription_id,
+        )
+
     if request.method == "POST":
         form = PharmacySaleForm(request.POST)
         formset = PharmacySaleItemFormSet(request.POST)
@@ -307,9 +316,30 @@ def sale_create(request):
                 messages.success(request, f"Sale completed and invoice {invoice.invoice_number} created.")
                 return redirect("pharmacy:sale_detail", pk=sale.pk)
     else:
-        form = PharmacySaleForm()
-        formset = PharmacySaleItemFormSet()
-    return render(request, "pharmacy/sale_form.html", {"form": form, "formset": formset, "title": "New Pharmacy Sale"})
+        form_initial = {}
+        formset_initial = None
+        if prescription:
+            form_initial = {
+                "patient": prescription.patient,
+                "prescription": prescription,
+            }
+            formset_initial = [
+                {
+                    "medicine": item.medicine,
+                    "quantity": item.quantity,
+                    "unit_price": item.display_unit_price,
+                }
+                for item in prescription.items.all()
+                if item.medicine_id
+            ]
+        form = PharmacySaleForm(initial=form_initial)
+        formset = PharmacySaleItemFormSet(initial=formset_initial)
+    return render(request, "pharmacy/sale_form.html", {
+        "form": form,
+        "formset": formset,
+        "prescription": prescription,
+        "title": "New Pharmacy Sale",
+    })
 
 
 @login_required

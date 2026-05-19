@@ -1,0 +1,21 @@
+{
+  "scripts": {
+    "dev": "npx remotion studio",
+    "build": "npx remotion render HMSDemo out/demo.mp4",
+    "upgrade": "npx remotion upgrade"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.443",
+    "@remotion/media": "^4.0.443",
+    "@remotion/transitions": "^4.0.443",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "remotion": "^4.0.443",
+    "typescript": "^6.0.2"
+  },
+  "remotion": {
+    "studio": "./src/index.ts"
+  }
+}

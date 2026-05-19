@@ -17,7 +17,9 @@ from scrapy.http import HtmlResponse, Request
 from pharmacy.importers import merge_medicine_dataset
 from pharmacy.models import Medicine
 from core.models import User
+from doctors.models import Doctor
 from patients.models import Patient
+from prescriptions.models import Prescription, PrescriptionItem
 from scraper.medex.items import BrandItem, GenericItem
 from scraper.medex.spiders.brands_spider import MedexBrandsSpider
 
@@ -523,6 +525,19 @@ class PharmacyOperationsTests(TestCase):
             unit_price=Decimal("12.50"),
             reorder_level=10,
         )
+        self.doctor_user = User.objects.create_user(
+            username="doctor",
+            password="password123",
+            role=User.Role.DOCTOR,
+            first_name="Ibrahim",
+            last_name="Khan",
+        )
+        self.doctor = Doctor.objects.create(
+            user=self.doctor_user,
+            specialization="Medicine",
+            department="GENERAL",
+            consultation_fee=Decimal("500.00"),
+        )
 
     def test_medicine_expiry_helpers_identify_expired_and_near_expiry(self):
         expired = Medicine.objects.create(
@@ -642,6 +657,78 @@ class PharmacyOperationsTests(TestCase):
 
         self.medicine.refresh_from_db()
         self.assertEqual(self.medicine.stock, 5)
+
+    def test_sale_create_prefills_from_prescription(self):
+        prescription = Prescription.objects.create(
+            patient=self.patient,
+            doctor=self.doctor,
+            diagnosis="Fever",
+        )
+        PrescriptionItem.objects.create(
+            prescription=prescription,
+            medicine=self.medicine,
+            medicine_name=self.medicine.name,
+            dosage="500 mg",
+            quantity=3,
+            unit_price=self.medicine.unit_price,
+            frequency="BD",
+            duration="5 days",
+        )
+        client = Client()
+        client.force_login(self.user)
+
+        response = client.get(reverse("pharmacy:sale_create"), {"from_prescription": prescription.pk})
+
+        self.assertEqual(response.status_code, 200)
+        form = response.context["form"]
+        formset = response.context["formset"]
+        self.assertEqual(form.initial["patient"], self.patient)
+        self.assertEqual(form.initial["prescription"], prescription)
+        self.assertEqual(formset.forms[0].initial["medicine"], self.medicine)
+        self.assertEqual(formset.forms[0].initial["quantity"], 3)
+        self.assertEqual(formset.forms[0].initial["unit_price"], self.medicine.unit_price)
+        self.assertContains(response, f'value="{self.patient.pk}" selected')
+        self.assertContains(response, f'value="{self.medicine.pk}" selected')
+
+    def test_sale_create_from_prescription_requires_pharmacy_permission(self):
+        prescription = Prescription.objects.create(
+            patient=self.patient,
+            doctor=self.doctor,
+            diagnosis="Fever",
+        )
+        client = Client()
+        client.force_login(self.doctor_user)
+
+        response = client.get(reverse("pharmacy:sale_create"), {"from_prescription": prescription.pk})
+
+        self.assertRedirects(response, reverse("core:dashboard"))
+
+    def test_prescription_detail_shows_invoice_sale_button_for_pharmacist(self):
+        prescription = Prescription.objects.create(
+            patient=self.patient,
+            doctor=self.doctor,
+            diagnosis="Fever",
+        )
+        client = Client()
+        client.force_login(self.user)
+
+        response = client.get(reverse("prescriptions:prescription_detail", args=[prescription.pk]))
+
+        self.assertContains(response, "Create Invoice")
+        self.assertContains(response, f"{reverse('pharmacy:sale_create')}?from_prescription={prescription.pk}")
+
+    def test_prescription_detail_hides_invoice_sale_button_without_pharmacy_permission(self):
+        prescription = Prescription.objects.create(
+            patient=self.patient,
+            doctor=self.doctor,
+            diagnosis="Fever",
+        )
+        client = Client()
+        client.force_login(self.doctor_user)
+
+        response = client.get(reverse("prescriptions:prescription_detail", args=[prescription.pk]))
+
+        self.assertNotContains(response, "Create Invoice")
 
     def test_dispensing_blocks_expired_medicine(self):
         self.medicine.expiry_date = timezone.localdate() - timezone.timedelta(days=1)

@@ -5,6 +5,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.core.paginator import Paginator
 from core.decorators import module_required
+from core.permissions import can_access_module
 
 from pharmacy.models import Medicine
 
@@ -58,7 +59,10 @@ def prescription_detail(request, pk):
     if request.user.is_doctor and prescription.doctor != getattr(request.user, "doctor_profile", None):
         messages.error(request, "You do not have permission to view this prescription.")
         return redirect("prescriptions:prescription_list")
-    return render(request, "prescriptions/prescription_detail.html", {"prescription": prescription})
+    return render(request, "prescriptions/prescription_detail.html", {
+        "prescription": prescription,
+        "can_create_pharmacy_sale": can_access_module(request.user, "pharmacy"),
+    })
 
 
 @login_required
